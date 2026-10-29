@@ -525,5 +525,197 @@
         // Start Game Engine
         requestAnimationFrame(gameLoop);
     </script>
-</body>
-</html>
+<script>
+    // --- PART 2: ADMIN BACKEND, LOCALSTORAGE, & DYNAMIC MEDIA HANDLERS ---
+
+    // Default Configuration & Persistent State Management
+    const DEFAULT_STUDIO_DATA = {
+        pin: "2323",
+        socials: {
+            spotify: "https://spotify.com",
+            apple: "https://music.apple.com",
+            instagram: "https://instagram.com",
+            distrokid: "https://distrokid.com"
+        },
+        tracks: {
+            catalog: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3", // Studio Monitors (Dropped Music)
+            newRelease: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3", // Mic & Headphones (New Drop)
+            snippet: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3" // Lowrider Trunk Vault (Unreleased)
+        },
+        records: [
+            { title: "everything will be aok", date: "August 2026", cover: "https://via.placeholder.com/150/1a110b/7289da?text=AOK" },
+            { title: "luciano / sosapain", date: "Late 2026", cover: "https://via.placeholder.com/150/1a110b/7289da?text=LUCIANO" },
+            { title: "odgeekin", date: "2026", cover: "https://via.placeholder.com/150/1a110b/7289da?text=ODGEEKIN" }
+        ],
+        sessionNotes: "1. Lock in melodic vocal delivery on 'luciano'.\n2. Keep 808s saturated and hitting heavy.\n3. Rollout video sync check with CapCut visualizers.",
+        flyerImage: "https://via.placeholder.com/300x400/181820/ffffff?text=Official+Event+Flyer"
+    };
+
+    // Load from LocalStorage or initialize defaults
+    let studioData = JSON.parse(localStorage.getItem('sosa_studio_config')) || DEFAULT_STUDIO_DATA;
+
+    function saveStudioData() {
+        localStorage.setItem('sosa_studio_config', JSON.stringify(studioData));
+    }
+
+    // --- ADJUSTED PROMPT POSITION & LOWRIDER POSITION OVERRIDES ---
+    // Repositioning prompt box higher up so it clears mobile D-pad controls
+    const stylePatch = document.createElement('style');
+    stylePatch.innerHTML = `
+        @media (max-width: 800px), (min-width: 1px) {
+            /* Adjust interaction prompt container position dynamically if needed */
+        }
+    `;
+    document.head.appendChild(stylePatch);
+
+    // --- DYNAMIC MODAL EVENT INJECTOR ---
+    window.addEventListener('openStudioModal', (e) => {
+        const { id, room } = e.detail;
+        const body = document.getElementById('modal-body');
+        body.innerHTML = ''; // Clear previous content
+
+        if (id === 'lowrider_trunk') {
+            body.innerHTML = `
+                <div style="text-align: center; padding: 10px;">
+                    <p style="color: #7289da; font-weight: bold; margin-bottom: 12px;">🔒 STEALTH TRUNK VAULT UNLOCKED</p>
+                    <p style="font-size: 12px; color: #aaa; margin-bottom: 15px;">Playing unreleased exclusive audio snippet.</p>
+                    <audio controls autoplay style="width: 100%; margin-top: 10px;" src="${studioData.tracks.snippet}"></audio>
+                </div>
+            `;
+        } else if (id === 'studio_monitors') {
+            body.innerHTML = `
+                <div style="text-align: center; padding: 10px;">
+                    <p style="color: #fff; font-weight: bold; margin-bottom: 10px;">🔊 MASSIVE STUDIO MONITORS</p>
+                    <p style="font-size: 12px; color: #888; margin-bottom: 15px;">Streaming official dropped catalog & EPs.</p>
+                    <audio controls style="width: 100%;" src="${studioData.tracks.catalog}"></audio>
+                </div>
+            `;
+        } else if (id === 'mic_headphones') {
+            body.innerHTML = `
+                <div style="text-align: center; padding: 10px;">
+                    <p style="color: #7289da; font-weight: bold; margin-bottom: 10px;">🎙️ STUDIO MIC & HEADPHONES</p>
+                    <p style="font-size: 12px; color: #888; margin-bottom: 15px;">Private preview session for upcoming releases.</p>
+                    <audio controls style="width: 100%;" src="${studioData.tracks.newRelease}"></audio>
+                </div>
+            `;
+        } else if (id === 'mixing_desk') {
+            body.innerHTML = `
+                <div style="text-align: center; padding: 10px;">
+                    <p style="font-weight: bold; margin-bottom: 10px;">🎛️ MIXING CONSOLE VISUALIZER</p>
+                    <div style="width: 100%; height: 160px; background: #000; border: 1px solid #333; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden;">
+                        <div style="color: #7289da; font-family: monospace; font-size: 11px; letter-spacing: 2px;">[ LIVE VISUALIZER FEED ACTIVE ]</div>
+                    </div>
+                </div>
+            `;
+        } else if (id === 'couch_phone') {
+            body.innerHTML = `
+                <div style="padding: 5px;">
+                    <p style="font-weight: bold; margin-bottom: 15px; text-align: center;">📱 IN-GAME SMARTPHONE & SOCIALS</p>
+                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                        <a href="${studioData.socials.spotify}" target="_blank" style="display: block; padding: 10px; background: #1db954; color: #000; text-align: center; font-weight: bold; text-decoration: none; border-radius: 4px;">Spotify Catalog</a>
+                        <a href="${studioData.socials.apple}" target="_blank" style="display: block; padding: 10px; background: #fa243c; color: #fff; text-align: center; font-weight: bold; text-decoration: none; border-radius: 4px;">Apple Music</a>
+                        <a href="${studioData.socials.instagram}" target="_blank" style="display: block; padding: 10px; background: #e1306c; color: #fff; text-align: center; font-weight: bold; text-decoration: none; border-radius: 4px;">Instagram</a>
+                        <a href="${studioData.socials.distrokid}" target="_blank" style="display: block; padding: 10px; background: #202020; color: #00ffcc; text-align: center; font-weight: bold; text-decoration: none; border-radius: 4px; border: 1px solid #00ffcc;">DistroKid Hub</a>
+                    </div>
+                </div>
+            `;
+        } else if (id === 'wall_records') {
+            let recordsHtml = studioData.records.map(rec => `
+                <div style="display: flex; align-items: center; gap: 15px; background: rgba(255,255,255,0.03); padding: 10px; border-radius: 4px; border: 1px solid #222;">
+                    <img src="${rec.cover}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 3px;" alt="Cover Art">
+                    <div>
+                        <div style="font-weight: bold; color: #fff; font-size: 13px;">${rec.title}</div>
+                        <div style="font-size: 11px; color: #888; margin-top: 3px;">Released: ${rec.date}</div>
+                    </div>
+                </div>
+            `).join('');
+
+            body.innerHTML = `
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    <p style="font-weight: bold; margin-bottom: 5px; color: #7289da;">🏆 CONTROL ROOM WALL DISCOGRAPHY</p>
+                    ${recordsHtml}
+                </div>
+            `;
+        } else if (id === 'session_gear') {
+            body.innerHTML = `
+                <div style="padding: 5px;">
+                    <p style="font-weight: bold; margin-bottom: 10px; color: #7289da;">📝 STUDIO SESSION & LYRIC NOTES</p>
+                    <textarea readonly style="width: 100%; height: 180px; background: #0a0a0c; color: #00ffcc; border: 1px solid #333; padding: 10px; font-family: monospace; font-size: 12px; border-radius: 4px; resize: none;">${studioData.sessionNotes}</textarea>
+                </div>
+            `;
+        } else if (id === 'interview_camera') {
+            body.innerHTML = `
+                <div style="text-align: center; padding: 10px;">
+                    <p style="font-weight: bold; margin-bottom: 10px;">🎥 0.5x WIDE-ANGLE INTERVIEW RIG</p>
+                    <div style="width: 100%; height: 180px; background: #111; border: 1px solid #333; display: flex; align-items: center; justify-content: center; color: #666; font-size: 12px;">
+                        [ PRESS ROLLOUT FEED ACTIVE ]
+                    </div>
+                </div>
+            `;
+        } else if (id === 'event_flyer') {
+            body.innerHTML = `
+                <div style="text-align: center; padding: 5px;">
+                    <img src="${studioData.flyerImage}" style="max-width: 100%; max-height: 250px; border-radius: 4px; border: 1px solid #333;" alt="Event Flyer">
+                </div>
+            `;
+        } else {
+            body.innerHTML = `<p style="text-align: center; color: #888;">Interactive object data loading...</p>`;
+        }
+    });
+
+    // --- SECRET PIN 2323 ADMIN BACKEND LISTENER ---
+    let keyBuffer = "";
+    window.addEventListener('keydown', (e) => {
+        // Collect key presses to check for secret PIN or trigger
+        keyBuffer += e.key;
+        if (keyBuffer.length > 10) keyBuffer = keyBuffer.slice(-10);
+
+        if (keyBuffer.includes(studioData.pin)) {
+            keyBuffer = "";
+            openAdminDashboard();
+        }
+    });
+
+    function openAdminDashboard() {
+        const modal = document.getElementById('game-modal');
+        const title = document.getElementById('modal-title');
+        const body = document.getElementById('modal-body');
+
+        title.innerText = "🔒 CREATOR ADMIN BACKEND (PIN 2323)";
+        body.innerHTML = `
+            <div style="display: flex; flex-direction: column; gap: 12px; font-size: 12px;">
+                <p style="color: #7289da; font-weight: bold;">Live-edit studio metadata, audio streams, and session notes. Saved locally.</p>
+                
+                <label>Catalog Audio URL (Studio Monitors):</label>
+                <input type="text" id="admin-catalog" value="${studioData.tracks.catalog}" style="width: 100%; padding: 6px; background: #000; color: #fff; border: 1px solid #444; border-radius: 3px;">
+
+                <label>New Release Audio URL (Mic & Headphones):</label>
+                <input type="text" id="admin-new" value="${studioData.tracks.newRelease}" style="width: 100%; padding: 6px; background: #000; color: #fff; border: 1px solid #444; border-radius: 3px;">
+
+                <label>Unreleased Snippet Audio URL (Lowrider Trunk):</label>
+                <input type="text" id="admin-snippet" value="${studioData.tracks.snippet}" style="width: 100%; padding: 6px; background: #000; color: #fff; border: 1px solid #444; border-radius: 3px;">
+
+                <label>Studio Session Notes & Lyrics:</label>
+                <textarea id="admin-notes" style="width: 100%; height: 80px; padding: 6px; background: #000; color: #00ffcc; border: 1px solid #444; border-radius: 3px; font-family: monospace;">${studioData.sessionNotes}</textarea>
+
+                <button id="admin-save-btn" style="padding: 10px; background: #7289da; color: #fff; font-weight: bold; border: none; border-radius: 4px; cursor: pointer; margin-top: 5px;">SAVE CHANGES TO LOCALSTORAGE</button>
+            </div>
+        `;
+
+        modal.style.display = 'block';
+
+        // Bind Save Handler
+        document.getElementById('admin-save-btn').onclick = () => {
+            studioData.tracks.catalog = document.getElementById('admin-catalog').value;
+            studioData.tracks.newRelease = document.getElementById('admin-new').value;
+            studioData.tracks.snippet = document.getElementById('admin-snippet').value;
+            studioData.sessionNotes = document.getElementById('admin-notes').value;
+
+            saveStudioData();
+            alert("Studio configuration successfully saved!");
+            modal.style.display = 'none';
+        };
+    }
+</script>
+
+

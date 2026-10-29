@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AOK // Pixel Studio</title>
+    <title>AOK // STUDIO</title>
     <style>
         * {
             box-sizing: border-box;
@@ -13,243 +13,245 @@
             -webkit-user-select: none;
         }
         body {
-            background-color: #0c0c0e;
-            color: #f4f4f6;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            overflow: hidden;
+            background-color: #0d0d0f;
+            color: #f0f0f5;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             display: flex;
             flex-direction: column;
             height: 100vh;
             height: 100dvh;
+            overflow: hidden;
+            align-items: center;
         }
         header {
-            background: #141418;
-            border-bottom: 1px solid #2a2a35;
-            padding: 12px 16px;
+            width: 100%;
+            max-width: 500px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            z-index: 10;
+            padding: 12px 16px;
+            background: #141418;
+            border-bottom: 1px solid #22222c;
         }
-        .logo {
-            font-weight: 900;
-            font-size: 1.1rem;
+        h1 {
+            font-size: 16px;
             letter-spacing: 2px;
-            color: #a855f7;
-            text-shadow: 0 0 10px rgba(168, 85, 247, 0.4);
+            color: #b084ff;
+            font-weight: 800;
         }
-        .status {
-            font-size: 0.75rem;
-            color: #71717a;
-            background: #1e1e24;
+        .status-badge {
+            font-size: 11px;
+            background: #1e1e28;
+            color: #a0a0b0;
             padding: 4px 8px;
             border-radius: 4px;
-            border: 1px solid #2a2a35;
+            border: 1px solid #2d2d3c;
         }
         .canvas-container {
-            flex: 1;
+            width: 100%;
+            max-width: 500px;
+            flex-grow: 1;
+            background: #08080a;
             position: relative;
-            background: #09090b;
             display: flex;
             justify-content: center;
             align-items: center;
             overflow: hidden;
+            border-bottom: 1px solid #22222c;
         }
         canvas {
+            background: #0b0b0e;
+            display: block;
             image-rendering: pixelated;
             image-rendering: crisp-edges;
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
         }
         .controls-panel {
-            background: #141418;
-            border-top: 1px solid #2a2a35;
+            width: 100%;
+            max-width: 500px;
             padding: 16px;
+            background: #141418;
             display: flex;
-            flex-direction: column;
-            gap: 12px;
-            z-index: 10;
-        }
-        .dpad-container {
-            display: flex;
+            gap: 16px;
             justify-content: space-between;
             align-items: center;
         }
         .dpad {
             display: grid;
-            grid-template-columns: repeat(3, 50px);
-            grid-template-rows: repeat(3, 50px);
+            grid-template-columns: repeat(3, 44px);
+            grid-template-rows: repeat(3, 44px);
             gap: 4px;
         }
         .dpad-btn {
-            background: #1e1e24;
-            border: 1px solid #2a2a35;
-            color: #f4f4f6;
-            font-size: 1.2rem;
+            background: #1e1e28;
+            border: 1px solid #2d2d3c;
+            color: #fff;
+            font-size: 16px;
             border-radius: 8px;
             display: flex;
             justify-content: center;
             align-items: center;
             cursor: pointer;
-            active-background: #2a2a35;
+            transition: background 0.1s;
         }
         .dpad-btn:active {
-            background: #a855f7;
-            border-color: #c084fc;
+            background: #b084ff;
+            color: #0d0d0f;
         }
-        .up { grid-column: 2; grid-row: 1; }
-        .left { grid-column: 1; grid-row: 2; }
-        .right { grid-column: 3; grid-row: 2; }
-        .down { grid-column: 2; grid-row: 3; }
+        .d-up { grid-column: 2; grid-row: 1; }
+        .d-left { grid-column: 1; grid-row: 2; }
+        .d-center { grid-column: 2; grid-row: 2; background: #141418; border: none; pointer-events: none; }
+        .d-right { grid-column: 3; grid-row: 2; }
+        .d-down { grid-column: 2; grid-row: 3; }
 
-        .action-btns {
+        .action-buttons {
             display: flex;
-            gap: 10px;
+            flex-direction: column;
+            gap: 8px;
+            flex-grow: 1;
         }
         .action-btn {
-            flex: 1;
-            background: #1e1e24;
-            border: 1px solid #2a2a35;
-            color: #f4f4f6;
+            background: #b084ff;
+            color: #0d0d0f;
+            border: none;
             padding: 14px;
+            font-weight: 700;
+            font-size: 14px;
             border-radius: 8px;
-            font-weight: 600;
-            font-size: 0.9rem;
             cursor: pointer;
             text-align: center;
-        }
-        .action-btn.primary {
-            background: #a855f7;
-            border-color: #c084fc;
-            color: #fff;
-            box-shadow: 0 0 15px rgba(168, 85, 247, 0.3);
+            box-shadow: 0 4px 12px rgba(176, 132, 255, 0.2);
         }
         .action-btn:active {
-            opacity: 0.8;
+            transform: scale(0.98);
+            background: #9d6aff;
+        }
+        .secondary-btn {
+            background: #1e1e28;
+            color: #f0f0f5;
+            border: 1px solid #2d2d3c;
+            box-shadow: none;
+        }
+        .secondary-btn:active {
+            background: #282836;
         }
     </style>
 </head>
 <body>
-
     <header>
-        <div class="logo">AOK // STUDIO</div>
-        <div class="status" id="interactionStatus">Walk to Gear</div>
+        <h1>AOK // STUDIO</h1>
+        <div class="status-badge" id="mode-indicator">Studio Free Roam</div>
     </header>
-
+    
     <div class="canvas-container">
-        <canvas id="studioCanvas" width="320" height="180"></canvas>
+        <canvas id="gameCanvas" width="384" height="224"></canvas>
     </div>
 
     <div class="controls-panel">
-        <div class="dpad-container">
-            <div class="dpad">
-                <div class="dpad-btn up" id="btnUp">▲</div>
-                <div class="dpad-btn left" id="btnLeft">◀</div>
-                <div class="dpad-btn right" id="btnRight">▶</div>
-                <div class="dpad-btn down" id="btnDown">▼</div>
-            </div>
-            <div style="display: flex; flex-direction: column; gap: 8px; width: 140px;">
-                <div class="action-btn primary" id="btnAction">Interact</div>
-                <div class="action-btn" id="btnBeat">Toggle Beat</div>
-            </div>
+        <div class="dpad">
+            <button class="dpad-btn d-up" id="btn-up">▲</button>
+            <button class="dpad-btn d-left" id="btn-left">◀</button>
+            <div class="dpad-btn d-center"></div>
+            <button class="dpad-btn d-right" id="btn-right">▶</button>
+            <button class="dpad-btn d-down" id="btn-down">▼</button>
+        </div>
+        <div class="action-buttons">
+            <button class="action-btn" id="btn-interact">Interact</button>
+            <button class="action-btn secondary-btn" id="btn-beat">Toggle Beat</button>
         </div>
     </div>
-
     <script>
-        const canvas = document.getElementById('studioCanvas');
+        const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
-        ctx.imageSmoothingEnabled = false;
 
-        // Player state
         let player = {
-            x: 140,
+            x: 180,
             y: 100,
-            size: 12,
-            speed: 1.5,
-            dir: 'down',
-            moving: false
+            size: 16,
+            speed: 2,
+            color: '#b084ff',
+            dir: 'down'
         };
 
-        // Input state
         let keys = { up: false, down: false, left: false, right: false };
+        let isBeatPlaying = false;
+        let audioCtx = null;
+        let beatInterval = null;
 
-        // Setup touch/mouse listeners for D-Pad
-        function bindButton(id, keyName) {
-            const el = document.getElementById(id);
-            el.addEventListener('touchstart', (e) => { e.preventDefault(); keys[keyName] = true; player.moving = true; });
-            el.addEventListener('touchend', (e) => { e.preventDefault(); keys[keyName] = false; });
-            el.addEventListener('mousedown', () => { keys[keyName] = true; player.moving = true; });
-            el.addEventListener('mouseup', () => { keys[keyName] = false; });
+        // Controls binding
+        function setupButton(id, keyName) {
+            const btn = document.getElementById(id);
+            ['mousedown', 'touchstart'].forEach(evt => {
+                btn.addEventListener(evt, (e) => { e.preventDefault(); keys[keyName] = true; });
+            });
+            ['mouseup', 'touchend', 'touchcancel'].forEach(evt => {
+                btn.addEventListener(evt, (e) => { e.preventDefault(); keys[keyName] = false; });
+            });
         }
 
-        bindButton('btnUp', 'up');
-        bindButton('btnDown', 'down');
-        bindButton('btnLeft', 'left');
-        bindButton('btnRight', 'right');
+        setupButton('btn-up', 'up');
+        setupButton('btn-down', 'down');
+        setupButton('btn-left', 'left');
+        setupButton('btn-right', 'right');
 
-        let beatPlaying = false;
-        let audioCtx = null;
-
-        document.getElementById('btnBeat').addEventListener('click', () => {
-            beatPlaying = !beatPlaying;
-            document.getElementById('btnBeat').style.borderColor = beatPlaying ? '#a855f7' : '#2a2a35';
-            if (beatPlaying && !audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            }
+        document.getElementById('btn-interact').addEventListener('click', () => {
+            const indicator = document.getElementById('mode-indicator');
+            indicator.textContent = "Interacted with Studio Gear!";
+            setTimeout(() => { indicator.textContent = "Studio Free Roam"; }, 2000);
         });
 
-        document.getElementById('btnAction').addEventListener('click', () => {
-            // Check interaction distance with studio gear
-            let distToMic = Math.hypot(player.x - 80, player.y - 70);
-            if (distToMic < 30) {
-                alert("Microphone Booth: Vokals recording ready. Purple lighting active.");
+        document.getElementById('btn-beat').addEventListener('click', () => {
+            isBeatPlaying = !isBeatPlaying;
+            const beatBtn = document.getElementById('btn-beat');
+            const indicator = document.getElementById('mode-indicator');
+            
+            if (isBeatPlaying) {
+                beatBtn.textContent = "Stop Beat";
+                indicator.textContent = "Beat Playing ♫";
+                startAudioLoop();
             } else {
-                alert("Exploring the MDM Studio setup.");
+                beatBtn.textContent = "Toggle Beat";
+                indicator.textContent = "Studio Free Roam";
+                stopAudioLoop();
             }
         });
 
-        // Simple audio loop ticker
-        let tick = 0;
-        function playBeatStep() {
-            if (!beatPlaying || !audioCtx) return;
-            if (tick % 8 === 0) {
-                // Kick drum simulator
+        function startAudioLoop() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            
+            let step = 0;
+            beatInterval = setInterval(() => {
+                if (!isBeatPlaying) return;
                 let osc = audioCtx.createOscillator();
                 let gain = audioCtx.createGain();
-                osc.frequency.setValueAtTime(120, audioCtx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(30, audioCtx.currentTime + 0.1);
-                gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
-                gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+                osc.type = (step % 4 === 0) ? 'square' : 'sine';
+                osc.frequency.setValueAtTime((step % 4 === 0) ? 110 : 220, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
                 osc.connect(gain);
                 gain.connect(audioCtx.destination);
                 osc.start();
-                osc.stop(audioCtx.currentTime + 0.1);
-            }
-            tick++;
+                osc.stop(audioCtx.currentTime + 0.2);
+                step = (step + 1) % 8;
+            }, 250);
         }
-        setInterval(playBeatStep, 120);
 
-        // Game Loop
+        function stopAudioLoop() {
+            if (beatInterval) clearInterval(beatInterval);
+        }
+
         function update() {
-            player.moving = false;
-            if (keys.up) { player.y -= player.speed; player.dir = 'up'; player.moving = true; }
-            if (keys.down) { player.y += player.speed; player.dir = 'down'; player.moving = true; }
-            if (keys.left) { player.x -= player.speed; player.dir = 'left'; player.moving = true; }
-            if (keys.right) { player.x += player.speed; player.dir = 'right'; player.moving = true; }
-
-            // Room bounds
-            player.x = Math.max(20, Math.min(300, player.x));
-            player.y = Math.max(50, Math.min(160, player.y));
+            if (keys.up && player.y > 10) player.y -= player.speed;
+            if (keys.down && player.y < canvas.height - 26) player.y += player.speed;
+            if (keys.left && player.x > 10) player.x -= player.speed;
+            if (keys.right && player.x < canvas.width - 26) player.x += player.speed;
         }
 
-        function draw() {
-            // Background Room (Dark underground studio aesthetic with purple ambient tint)
-            ctx.fillStyle = '#121216';
+        function drawGrid() {
+            ctx.fillStyle = '#0b0b0e';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Floor Grid Pattern
-            ctx.strokeStyle = '#1a1a22';
+            ctx.strokeStyle = '#14141c';
             ctx.lineWidth = 1;
             for (let x = 0; x < canvas.width; x += 16) {
                 ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
@@ -257,35 +259,36 @@
             for (let y = 0; y < canvas.height; y += 16) {
                 ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
             }
+        }
 
-            // Studio Gear: Microphone Booth & Reflection Shield (Top Left)
-            ctx.fillStyle = '#272730';
-            ctx.fillRect(60, 50, 40, 40);
-            ctx.fillStyle = '#a855f7'; // Purple ambient lighting
-            ctx.fillRect(75, 60, 10, 20);
+        function drawStudioProps() {
+            // Mixing console desk
+            ctx.fillStyle = '#1e1e28';
+            ctx.fillRect(80, 50, 80, 40);
+            ctx.fillStyle = '#b084ff';
+            ctx.fillRect(90, 60, 16, 10);
+            ctx.fillRect(115, 60, 10, 10);
 
-            // Studio Gear: Monitors & Laptop Setup (Top Right)
-            ctx.fillStyle = '#1e1e24';
-            ctx.fillRect(220, 50, 60, 30);
-            ctx.fillStyle = '#3b82f6';
-            ctx.fillRect(235, 58, 30, 15);
+            // Studio Monitors / Speakers
+            ctx.fillStyle = '#181820';
+            ctx.fillRect(260, 50, 32, 40);
+            ctx.fillStyle = '#3a3a48';
+            ctx.beginPath(); ctx.arc(276, 70, 8, 0, Math.PI * 2); ctx.fill();
+        }
 
-            // Draw Player (Pixel Character with fitted streetwear aesthetic)
-            ctx.fillStyle = '#f4f4f6'; // Skin/Head
-            ctx.fillRect(player.x - 3, player.y - 8, 6, 6);
-            ctx.fillStyle = '#a855f7'; // Hoodie / Jacket
-            ctx.fillRect(player.x - 5, player.y - 2, 10, 8);
-            ctx.fillStyle = '#18181b'; // Pants
-            ctx.fillRect(player.x - 4, player.y + 6, 8, 6);
-
-            // Proximity detector text update
-            let distToMic = Math.hypot(player.x - 80, player.y - 70);
-            document.getElementById('interactionStatus').innerText = distToMic < 35 ? "Press Interact for Mic" : "Studio Free Roam";
+        function drawPlayer() {
+            ctx.fillStyle = player.color;
+            ctx.fillRect(player.x, player.y, player.size, player.size);
+            // Simple head / hair detail
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(player.x + 3, player.y + 2, 10, 4);
         }
 
         function loop() {
             update();
-            draw();
+            drawGrid();
+            drawStudioProps();
+            drawPlayer();
             requestAnimationFrame(loop);
         }
 
@@ -293,3 +296,4 @@
     </script>
 </body>
 </html>
+

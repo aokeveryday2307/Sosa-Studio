@@ -2,17 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sosa's Studio // 2D Pixel Experience</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sosa Studio Experience</title>
     <style>
-        :root {
-            --bg-color: #0a0a0c;
-            --accent-color: #7289da;
-            --text-color: #e0e0e0;
-            --hud-bg: rgba(15, 15, 20, 0.85);
-            --border-color: #2a2a35;
-        }
-
         * {
             box-sizing: border-box;
             margin: 0;
@@ -20,829 +12,534 @@
             user-select: none;
             -webkit-user-select: none;
         }
-
         body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
+            background-color: #0d0e12;
+            color: #ffffff;
             font-family: 'Courier New', Courier, monospace;
-            overflow: hidden;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
+            justify-content: flex-start;
             min-height: 100vh;
+            overflow: hidden;
         }
-
         #game-container {
             position: relative;
-            width: 800px;
-            height: 600px;
-            box-shadow: 0 0 30px rgba(0, 0, 0, 0.9);
-            border: 2px solid var(--border-color);
-            background: #000;
-        }
-
-        canvas {
-            display: block;
             width: 100%;
-            height: 100%;
-            image-rendering: pixelated;
+            max-width: 800px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
-
-        /* CRT Overlay Filter */
-        .crt-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
+        #hud-bar {
             width: 100%;
-            height: 100%;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
-            background-size: 100% 4px, 6px 100%;
-            pointer-events: none;
-            z-index: 10;
-        }
-
-        /* Top HUD Header */
-        #hud-header {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            right: 10px;
-            height: 40px;
-            background: var(--hud-bg);
-            border: 1px solid var(--border-color);
+            padding: 10px 16px;
+            background: #14161d;
+            border-bottom: 2px solid #232733;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 0 15px;
-            z-index: 20;
-            border-radius: 4px;
-        }
-
-        .hud-title {
+            font-size: 14px;
             font-weight: bold;
             letter-spacing: 1px;
-            color: #fff;
-            text-transform: uppercase;
-            font-size: 14px;
         }
-
-        .hud-location {
-            font-size: 12px;
-            color: #888899;
+        #hud-title {
+            color: #00f0ff;
+            text-shadow: 0 0 5px rgba(0, 240, 255, 0.5);
         }
-
-        /* On-Screen Mobile & Action Controls */
-        #controls-overlay {
-            position: absolute;
-            bottom: 15px;
-            left: 15px;
-            right: 15px;
+        #hud-zone {
+            color: #8a8f9e;
+        }
+        canvas {
+            background-color: #000;
+            display: block;
+            width: 100%;
+            max-width: 800px;
+            aspect-ratio: 4 / 3;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+            border: 2px solid #232733;
+        }
+        /* Mobile D-Pad & Action Controls */
+        #controls-container {
+            width: 100%;
+            max-width: 800px;
+            padding: 12px 16px;
             display: flex;
             justify-content: space-between;
-            align-items: flex-end;
-            z-index: 20;
-            pointer-events: none;
+            align-items: center;
+            background: #14161d;
         }
-
         .dpad {
             display: grid;
-            grid-template-columns: repeat(3, 40px);
-            grid-template-rows: repeat(3, 40px);
-            gap: 2px;
-            pointer-events: auto;
+            grid-template-columns: repeat(3, 44px);
+            grid-template-rows: repeat(3, 44px);
+            gap: 4px;
         }
-
         .dpad-btn {
-            background: rgba(30, 30, 40, 0.7);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: #232733;
+            border: 1px solid #3a3f52;
+            border-radius: 6px;
             color: #fff;
+            font-size: 18px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: bold;
-            border-radius: 4px;
-            cursor: pointer;
+            touch-action: manipulation;
         }
-
         .dpad-btn:active {
-            background: rgba(100, 100, 150, 0.8);
+            background: #00f0ff;
+            color: #000;
         }
-
-        .action-btn-container {
-            pointer-events: auto;
-        }
-
-        .interact-btn {
-            width: 90px;
-            height: 45px;
-            background: rgba(114, 137, 218, 0.8);
-            border: 1px solid #ffffff;
-            color: #fff;
-            font-weight: bold;
-            font-family: inherit;
-            border-radius: 6px;
-            cursor: pointer;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
-            font-size: 12px;
-            letter-spacing: 1px;
-        }
-
-        .interact-btn:active {
-            transform: translateY(2px);
-            background: rgba(114, 137, 218, 1);
-        }
-
-        /* Generic Modal UI Frame */
-        .modal {
-            display: none;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 85%;
-            max-width: 600px;
-            background: rgba(15, 15, 22, 0.95);
-            border: 2px solid var(--border-color);
-            box-shadow: 0 0 25px rgba(0, 0, 0, 0.9);
-            border-radius: 8px;
-            padding: 20px;
-            z-index: 30;
-            color: #fff;
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 10px;
-            margin-bottom: 15px;
-        }
-
-        .modal-title {
-            font-size: 16px;
-            font-weight: bold;
-            letter-spacing: 1px;
-            color: var(--accent-color);
-        }
-
-        .close-btn {
-            background: none;
+        #btn-up { grid-column: 2; grid-row: 1; }
+        #btn-left { grid-column: 1; grid-row: 2; }
+        #btn-right { grid-column: 3; grid-row: 2; }
+        #btn-down { grid-column: 2; grid-row: 3; }
+        
+        .action-btn {
+            padding: 14px 24px;
+            background: #00f0ff;
+            color: #0d0e12;
             border: none;
-            color: #888;
-            font-size: 20px;
-            cursor: pointer;
+            border-radius: 8px;
             font-weight: bold;
+            font-size: 14px;
+            letter-spacing: 1px;
+            box-shadow: 0 0 10px rgba(0, 240, 255, 0.3);
+            touch-action: manipulation;
         }
-
-        .close-btn:hover {
-            color: #fff;
-        }
-
-        .modal-body {
-            max-height: 380px;
-            overflow-y: auto;
-            font-size: 13px;
-            line-height: 1.5;
+        .action-btn:active {
+            transform: scale(0.96);
+            background: #fff;
         }
     </style>
 </head>
 <body>
 
-    <div id="game-container">
-        <div class="crt-overlay"></div>
-
-        <!-- HUD Header (No PIN text displayed) -->
-        <div id="hud-header">
-            <div class="hud-title">Sosa's Studio</div>
-            <div class="hud-location" id="room-indicator">Zone: Street Entrance</div>
-        </div>
-
-        <canvas id="gameCanvas" width="800" height="600"></canvas>
-
-        <!-- On-Screen Controls -->
-        <div id="controls-overlay">
-            <div class="dpad">
-                <div></div>
-                <div class="dpad-btn" id="btn-up">▲</div>
-                <div></div>
-                <div class="dpad-btn" id="btn-left">◄</div>
-                <div></div>
-                <div class="dpad-btn" id="btn-right">►</div>
-                <div></div>
-                <div class="dpad-btn" id="btn-down">▼</div>
-                <div></div>
-            </div>
-            <div class="action-btn-container">
-                <button class="interact-btn" id="btn-interact">[E] INTERACT</button>
-            </div>
-        </div>
-
-        <!-- Universal Interactive Modal -->
-        <div class="modal" id="game-modal">
-            <div class="modal-header">
-                <div class="modal-title" id="modal-title">Interactive Display</div>
-                <button class="close-btn" id="modal-close">&times;</button>
-            </div>
-            <div class="modal-body" id="modal-body">
-                <!-- Content injected dynamically -->
-            </div>
-        </div>
+<div id="game-container">
+    <div id="hud-bar">
+        <span id="hud-title">SOSA'S STUDIO</span>
+        <span id="hud-zone">Zone: Control Room</span>
     </div>
+    
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    
+    <div id="controls-container">
+        <div class="dpad">
+            <button class="dpad-btn" id="btn-up">▲</button>
+            <button class="dpad-btn" id="btn-left">◀</button>
+            <button class="dpad-btn" id="btn-right">▶</button>
+            <button class="dpad-btn" id="btn-down">▼</button>
+        </div>
+        <button class="action-btn" id="btn-interact">[E] INTERACT</button>
+    </div>
+</div>
 
-    <script>
-        // Core Web Audio Controller Engine
-        const AudioEngine = {
-            ctx: null,
-            init() {
-                if (!this.ctx) {
-                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
-                }
-            },
-            playTone(freq = 440, type = 'sine', duration = 0.2) {
-                this.init();
-                const osc = this.ctx.createOscillator();
-                const gain = this.ctx.createGain();
-                osc.type = type;
-                osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
-                gain.gain.setValueAtTime(0.1, this.ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
-                osc.connect(gain);
-                gain.connect(this.ctx.destination);
-                osc.start();
-                osc.stop(this.ctx.currentTime + duration);
-            }
-        };
-
-        // Canvas & Game State Context
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-
-        const state = {
-            currentRoom: 'outside', // Options: 'outside', 'control_room', 'studio_room'
-            keys: { up: false, down: false, left: false, right: false },
-            player: {
-                x: 400,
-                y: 420,
-                width: 24,
-                height: 32,
-                speed: 3,
-                direction: 'down'
-            },
-            nearObject: null
-        };
-
-        // Room & Interactive Object Definitions
-        const rooms = {
-            outside: {
-                name: "Outside Area",
-                doors: [
-                    { id: "door_studio_entry", x: 370, y: 220, width: 60, height: 40, targetRoom: "control_room", targetX: 400, targetY: 500, label: "Enter Studio" }
-                ],
-                objects: [
-                    { id: "event_flyer", x: 180, y: 220, width: 40, height: 50, title: "Official Event Flyer", label: "Inspect Event Flyer" },
-                    { id: "mdm_graffiti", x: 580, y: 250, width: 50, height: 30, title: "Wall Tag", label: "Inspect Graffiti Tag" },
-                    { id: "lowrider_trunk", x: 620, y: 410, width: 70, height: 50, title: "Lowrider Trunk", label: "Inspect Lowrider", stealth: true }
-                ]
-            },
-            control_room: {
-                name: "Control Room (Hub)",
-                doors: [
-                    { id: "door_exit_street", x: 370, y: 530, width: 60, height: 40, targetRoom: "outside", targetX: 400, targetY: 280, label: "Exit to Street" },
-                    { id: "door_studio_booth", x: 720, y: 270, width: 40, height: 60, targetRoom: "studio_room", targetX: 100, targetY: 300, label: "Enter Studio Booth" }
-                ],
-                objects: [
-                    { id: "studio_monitors", x: 340, y: 180, width: 120, height: 50, title: "Studio Monitors", label: "Play Dropped Discography" },
-                    { id: "mixing_desk", x: 330, y: 240, width: 140, height: 60, title: "Mixing Console", label: "Open Audio Visualizer" },
-                    { id: "couch_phone", x: 120, y: 380, width: 80, height: 50, title: "Studio Couch Phone", label: "Access Social Links" },
-                    { id: "wall_records", x: 520, y: 160, width: 140, height: 40, title: "Wall Discography & Release Dates", label: "Inspect Release Dates" }
-                ]
-            },
-            studio_room: {
-                name: "Studio Room",
-                doors: [
-                    { id: "door_control_hub", x: 40, y: 270, width: 40, height: 60, targetRoom: "control_room", targetX: 660, targetY: 300, label: "Return to Control Room" }
-                ],
-                objects: [
-                    { id: "mic_headphones", x: 400, y: 260, width: 50, height: 60, title: "Vocal Mic & Headphones", label: "Preview New Music Drops" },
-                    { id: "session_gear", x: 220, y: 250, width: 80, height: 60, title: "Tracking Rig & Session Notes", label: "Read Session & Lyric Notes" },
-                    { id: "interview_camera", x: 600, y: 350, width: 50, height: 50, title: "0.5x Interview Camera Rig", label: "View Press & Visual Rollout" }
-                ]
-            }
-        };
-
-        // Render Functions
-        function drawPlayer() {
-            // Body / Fit (Dark Streetwear)
-            ctx.fillStyle = '#111116';
-            ctx.fillRect(state.player.x - 12, state.player.y - 28, 24, 28);
-
-            // Head / Skin (White tone)
-            ctx.fillStyle = '#f5d6c6';
-            ctx.fillRect(state.player.x - 8, state.player.y - 36, 16, 12);
-
-            // Dark Curls
-            ctx.fillStyle = '#1a110b';
-            ctx.beginPath();
-            ctx.arc(state.player.x - 6, state.player.y - 36, 4, 0, Math.PI * 2);
-            ctx.arc(state.player.x, state.player.y - 38, 5, 0, Math.PI * 2);
-            ctx.arc(state.player.x + 6, state.player.y - 36, 4, 0, Math.PI * 2);
-            ctx.fill();
-        }
-
-                // Upgraded Detailed Pixel-Art Render Engine
-        function drawRoom() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            const activeRoom = rooms[state.currentRoom];
-
-            // Render Floor & Walls Background
-            if (state.currentRoom === 'outside') {
-                ctx.fillStyle = '#181820'; // Dark night sky / outside background
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                
-                // Brick wall texture lines on building
-                ctx.fillStyle = '#2d2528';
-                ctx.fillRect(100, 80, 600, 270);
-                ctx.strokeStyle = '#231d20';
-                for(let i = 100; i < 350; i += 20) {
-                    ctx.beginPath(); ctx.moveTo(100, i); ctx.lineTo(700, i); ctx.stroke();
-                }
-
-                // Street Asphalt
-                ctx.fillStyle = '#0f0f14';
-                ctx.fillRect(0, 350, canvas.width, 250);
-                // Road dashes
-                ctx.fillStyle = '#333';
-                for(let x = 50; x < canvas.width; x += 100) {
-                    ctx.fillRect(x, 470, 40, 4);
-                }
-            } else {
-                // Studio Interior Floor (Wood plank grid look)
-                ctx.fillStyle = '#1e1c24';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                ctx.strokeStyle = '#15131a';
-                for(let x = 0; x < canvas.width; x += 40) {
-                    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
-                }
-                // Studio Acoustic Back Wall
-                ctx.fillStyle = '#121118';
-                ctx.fillRect(40, 30, 720, 180);
-                // Acoustic foam panel lines
-                ctx.strokeStyle = '#1a1822';
-                for(let x = 60; x < 740; x += 60) {
-                    ctx.strokeRect(x, 40, 45, 160);
-                }
-            }
-
-            // Render Interactive Door Frameworks
-            activeRoom.doors.forEach(door => {
-                ctx.fillStyle = '#3a324a';
-                ctx.fillRect(door.x, door.y, door.width, door.height);
-                ctx.fillStyle = '#5a4d6e';
-                ctx.fillRect(door.x + 4, door.y + 4, door.width - 8, door.height - 8);
-                // Door knob/handle
-                ctx.fillStyle = '#a28bc2';
-                ctx.fillRect(door.x + 8, door.y + door.height / 2, 4, 8);
-            });
-
-            // Render Detailed Room Props
-            activeRoom.objects.forEach(obj => {
-                ctx.save();
-                if (obj.id === 'event_flyer') {
-                    // Detailed Flyer Poster
-                    ctx.fillStyle = '#f5f5f0';
-                    ctx.fillRect(obj.x, obj.y, obj.width, obj.height);
-                    ctx.fillStyle = '#fa243c'; // Red accent header
-                    ctx.fillRect(obj.x, obj.y, obj.width, 10);
-                    ctx.fillStyle = '#111';
-                    ctx.fillRect(obj.x + 5, obj.y + 15, obj.width - 10, 4);
-                    ctx.fillRect(obj.x + 5, obj.y + 25, obj.width - 15, 3);
-                    ctx.fillRect(obj.x + 5, obj.y + 32, obj.width - 10, 3);
-                } else if (obj.id === 'mdm_graffiti') {
-                    // MDM Graffiti Tag
-                    ctx.fillStyle = '#00ffcc';
-                    ctx.font = 'bold 14px monospace';
-                    ctx.fillText("MDM", obj.x, obj.y + 20);
-                } else if (obj.id === 'lowrider_trunk') {
-                    // Detailed Lowrider Rear & Trunk
-                    ctx.fillStyle = '#16161f';
-                    ctx.fillRect(obj.x - 70, obj.y, 140, 45); // Car body
-                    ctx.fillStyle = '#222';
-                    ctx.beginPath(); // Tires
-                    ctx.arc(obj.x - 45, obj.y + 45, 12, 0, Math.PI * 2);
-                    ctx.arc(obj.x + 45, obj.y + 45, 12, 0, Math.PI * 2);
-                    ctx.fill();
-                    ctx.fillStyle = '#silver'; // Chrome bumper
-                    ctx.fillRect(obj.x - 65, obj.y + 35, 130, 6);
-                } else if (obj.id === 'studio_monitors') {
-                    // Studio Monitor Speakers (Dual speakers with cones)
-                    ctx.fillStyle = '#1a1a24';
-                    ctx.fillRect(obj.x, obj.y, obj.width, obj.height);
-                    // Left Speaker Cones
-                    ctx.fillStyle = '#333';
-                    ctx.beginPath(); ctx.arc(obj.x + 30, obj.y + 25, 16, 0, Math.PI * 2); ctx.fill();
-                    ctx.fillStyle = '#ffaa00'; ctx.beginPath(); ctx.arc(obj.x + 30, obj.y + 25, 6, 0, Math.PI * 2); ctx.fill(); // Tweeter
-                    ctx.fillStyle = '#111'; ctx.beginPath(); ctx.arc(obj.x + 30, obj.y + 25, 12, 0, Math.PI * 2); ctx.fill();
-                    // Right Speaker Cones
-                    ctx.fillStyle = '#333';
-                    ctx.beginPath(); ctx.arc(obj.x + 90, obj.y + 25, 16, 0, Math.PI * 2); ctx.fill();
-                    ctx.fillStyle = '#ffaa00'; ctx.beginPath(); ctx.arc(obj.x + 90, obj.y + 25, 6, 0, Math.PI * 2); ctx.fill();
-                    ctx.fillStyle = '#111'; ctx.beginPath(); ctx.arc(obj.x + 90, obj.y + 25, 12, 0, Math.PI * 2); ctx.fill();
-                } else if (obj.id === 'mixing_desk') {
-                    // Mixing Console with Faders & Knobs
-                    ctx.fillStyle = '#22222d';
-                    ctx.fillRect(obj.x, obj.y, obj.width, obj.height);
-                    ctx.strokeStyle = '#444';
-                    ctx.strokeRect(obj.x, obj.y, obj.width, obj.height);
-                    // Mixing knobs & fader channels
-                    for(let k = obj.x + 15; k < obj.x + obj.width - 15; k += 20) {
-                        ctx.fillStyle = '#7289da';
-                        ctx.fillRect(k, obj.y + 10, 4, 12); // Knob
-                        ctx.fillStyle = '#fa243c';
-                        ctx.fillRect(k + 1, obj.y + 35, 2, 18); // Fader line
-                        ctx.fillStyle = '#fff';
-                        ctx.fillRect(k - 1, obj.y + 42, 6, 6); // Fader cap
-                    }
-                } else if (obj.id === 'couch_phone') {
-                    // Actual Couch / Sofa with Phone on it
-                    ctx.fillStyle = '#2b2633'; // Couch base
-                    ctx.fillRect(obj.x, obj.y + 15, obj.width, obj.height - 15);
-                    ctx.fillStyle = '#383142'; // Cushions
-                    ctx.fillRect(obj.x + 5, obj.y + 10, 32, 30);
-                    ctx.fillRect(obj.x + 43, obj.y + 10, 32, 30);
-                    ctx.fillStyle = '#1f1b26'; // Couch backrest
-                    ctx.fillRect(obj.x, obj.y, obj.width, 15);
-                    // Phone laying on the couch
-                    ctx.fillStyle = '#0ff';
-                    ctx.fillRect(obj.x + 55, obj.y + 22, 10, 16);
-                } else if (obj.id === 'wall_records') {
-                    // Framed Vinyl Records on Wall
-                    ctx.fillStyle = '#252028';
-                    ctx.fillRect(obj.x, obj.y, obj.width, obj.height);
-                    ctx.strokeStyle = '#444';
-                    ctx.strokeRect(obj.x, obj.y, obj.width, obj.height);
-                    // Record frames inside
-                    ctx.fillStyle = '#111';
-                    ctx.fillRect(obj.x + 10, obj.y + 8, 24, 24);
-                    ctx.fillRect(obj.x + 55, obj.y + 8, 24, 24);
-                    ctx.fillRect(obj.x + 100, obj.y + 8, 24, 24);
-                    // Vinyl center labels
-                    ctx.fillStyle = '#7289da';
-                    ctx.beginPath(); ctx.arc(obj.x + 22, obj.y + 20, 4, 0, Math.PI * 2); ctx.fill();
-                    ctx.fillStyle = '#fa243c';
-                    ctx.beginPath(); ctx.arc(obj.x + 67, obj.y + 20, 4, 0, Math.PI * 2); ctx.fill();
-                    ctx.fillStyle = '#0ff';
-                    ctx.beginPath(); ctx.arc(obj.x + 112, obj.y + 20, 4, 0, Math.PI * 2); ctx.fill();
-                } else if (obj.id === 'mic_headphones') {
-                    // Vocal Mic Stand & Headphones
-                    ctx.fillStyle = '#444'; // Stand pole
-                    ctx.fillRect(obj.x + 22, obj.y + 10, 4, 50);
-                    ctx.fillStyle = '#aaa'; // Mic head
-                    ctx.fillRect(obj.x + 18, obj.y, 12, 14);
-                    // Headphones hanging nearby
-                    ctx.strokeStyle = '#7289da';
-                    ctx.lineWidth = 2;
-                    ctx.beginPath(); ctx.arc(obj.x + 38, obj.y + 25, 10, Math.PI, Math.PI * 2); ctx.stroke();
-                } else if (obj.id === 'session_gear') {
-                    // Tracking Rig & Session Note Sheet on desk
-                    ctx.fillStyle = '#2a2833';
-                    ctx.fillRect(obj.x, obj.y, obj.width, obj.height);
-                    ctx.fillStyle = '#fff'; // Note paper
-                    ctx.fillRect(obj.x + 15, obj.y + 10, 30, 40);
-                    ctx.fillStyle = '#333'; // Text lines on paper
-                    ctx.fillRect(obj.x + 18, obj.y + 16, 24, 2);
-                    ctx.fillRect(obj.x + 18, obj.y + 22, 20, 2);
-                    ctx.fillRect(obj.x + 18, obj.y + 28, 22, 2);
-                } else if (obj.id === 'interview_camera') {
-                    // Interview Camera on Tripod
-                    ctx.fillStyle = '#333'; // Camera body
-                    ctx.fillRect(obj.x + 10, obj.y + 10, 25, 18);
-                    ctx.fillStyle = '#0ff'; // Lens
-                    ctx.fillRect(obj.x + 35, obj.y + 14, 8, 10);
-                    ctx.strokeStyle = '#555'; // Tripod legs
-                    ctx.beginPath();
-                    ctx.moveTo(obj.x + 22, obj.y + 28); ctx.lineTo(obj.x + 5, obj.y + 50);
-                    ctx.moveTo(obj.x + 22, obj.y + 28); ctx.lineTo(obj.x + 40, obj.y + 50);
-                    ctx.stroke();
-                }
-            });
-
-            drawPlayer();
-            checkProximity();
-            ctx.restore();
-        }
-        // Proximity Engine for Doorways & Objects
-        function checkProximity() {
-            const activeRoom = rooms[state.currentRoom];
-            state.nearObject = null;
-
-            // Check Doors First
-            for (let door of activeRoom.doors) {
-                if (isColliding(state.player, door)) {
-                    state.nearObject = { type: 'door', data: door };
-                    drawInteractionPrompt(`Press [E] to ${door.label}`);
-                    return;
-                }
-            }
-
-            // Check Interactive Objects
-            for (let obj of activeRoom.objects) {
-                if (isColliding(state.player, obj)) {
-                    state.nearObject = { type: 'object', data: obj };
-                    if (!obj.stealth) {
-                        drawInteractionPrompt(`Press [E] to ${obj.label}`);
-                    }
-                    return;
-                }
-            }
-        }
-
-        function isColliding(p, target) {
-            return (
-                p.x - p.width / 2 < target.x + target.width &&
-                p.x + p.width / 2 > target.x &&
-                p.y - p.height / 2 < target.y + target.height &&
-                p.y + p.height / 2 > target.y
-            );
-        }
-
-        function drawInteractionPrompt(text) {
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
-            ctx.fillRect(canvas.width / 2 - 140, canvas.height - 60, 280, 32);
-            ctx.strokeStyle = '#7289da';
-            ctx.strokeRect(canvas.width / 2 - 140, canvas.height - 60, 280, 32);
-            ctx.fillStyle = '#ffffff';
-            ctx.font = '12px "Courier New"';
-            ctx.textAlign = 'center';
-            ctx.fillText(text, canvas.width / 2, canvas.height - 40);
-        }
-
-        // Interaction Handler Dispatcher
-        function triggerInteraction() {
-            AudioEngine.playTone(600, 'sine', 0.1);
-            if (!state.nearObject) return;
-
-            if (state.nearObject.type === 'door') {
-                const door = state.nearObject.data;
-                state.currentRoom = door.targetRoom;
-                state.player.x = door.targetX;
-                state.player.y = door.targetY;
-                document.getElementById('room-indicator').innerText = `Zone: ${rooms[state.currentRoom].name}`;
-            } else if (state.nearObject.type === 'object') {
-                const obj = state.nearObject.data;
-                const modal = document.getElementById('game-modal');
-                const title = document.getElementById('modal-title');
-                const body = document.getElementById('modal-body');
-
-                title.innerText = obj.title;
-                
-                // Event Dispatcher for Part 2 Dynamic Modal Content
-                const event = new CustomEvent('openStudioModal', { detail: { id: obj.id, room: state.currentRoom } });
-                window.dispatchEvent(event);
-
-                modal.style.display = 'block';
-            }
-        }
-
-        // Movement Engine
-        function updatePlayerPosition() {
-            if (state.keys.up && state.player.y > 180) state.player.y -= state.player.speed;
-            if (state.keys.down && state.player.y < 540) state.player.y += state.player.speed;
-            if (state.keys.left && state.player.x > 50) state.player.x -= state.player.speed;
-            if (state.keys.right && state.player.x < 750) state.player.x += state.player.speed;
-        }
-
-        function gameLoop() {
-            updatePlayerPosition();
-            drawRoom();
-            requestAnimationFrame(gameLoop);
-        }
-
-        // Input Listener Bindings
-        window.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') state.keys.up = true;
-            if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') state.keys.down = true;
-            if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') state.keys.left = true;
-            if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') state.keys.right = true;
-            if (e.key === 'e' || e.key === 'E' || e.key === ' ') triggerInteraction();
-        });
-
-        window.addEventListener('keyup', (e) => {
-            if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') state.keys.up = false;
-            if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') state.keys.down = false;
-            if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') state.keys.left = false;
-            if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') state.keys.right = false;
-        });
-
-        // Touch Control Listeners
-        document.getElementById('btn-up').addEventListener('touchstart', (e) => { e.preventDefault(); state.keys.up = true; });
-        document.getElementById('btn-up').addEventListener('touchend', (e) => { e.preventDefault(); state.keys.up = false; });
-        document.getElementById('btn-down').addEventListener('touchstart', (e) => { e.preventDefault(); state.keys.down = true; });
-        document.getElementById('btn-down').addEventListener('touchend', (e) => { e.preventDefault(); state.keys.down = false; });
-        document.getElementById('btn-left').addEventListener('touchstart', (e) => { e.preventDefault(); state.keys.left = true; });
-        document.getElementById('btn-left').addEventListener('touchend', (e) => { e.preventDefault(); state.keys.left = false; });
-        document.getElementById('btn-right').addEventListener('touchstart', (e) => { e.preventDefault(); state.keys.right = true; });
-        document.getElementById('btn-right').addEventListener('touchend', (e) => { e.preventDefault(); state.keys.right = false; });
-        document.getElementById('btn-interact').addEventListener('click', triggerInteraction);
-
-        document.getElementById('modal-close').addEventListener('click', () => {
-            document.getElementById('game-modal').style.display = 'none';
-        });
-
-        // Start Game Engine
-        requestAnimationFrame(gameLoop);
-    </script>
 <script>
-    // --- PART 2: ADMIN BACKEND, LOCALSTORAGE, & DYNAMIC MEDIA HANDLERS ---
+    // Canvas & Context Setup
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
 
-    // Default Configuration & Persistent State Management
-    const DEFAULT_STUDIO_DATA = {
-        pin: "2323",
-        socials: {
-            spotify: "https://spotify.com",
-            apple: "https://music.apple.com",
-            instagram: "https://instagram.com",
-            distrokid: "https://distrokid.com"
+    // Force High-Quality Crisp Pixel Art Engine (Zero Blur)
+    ctx.imageSmoothingEnabled = false;
+
+    // Global Game State with Updated Proportions
+    const state = {
+        currentRoom: 'studio',
+        player: {
+            x: 380,
+            y: 430,
+            width: 36,
+            height: 52, // Accurate human height ratio
+            speed: 4,
+            direction: 'down',
+            isMoving: false
         },
-        tracks: {
-            catalog: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3", // Studio Monitors (Dropped Music)
-            newRelease: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3", // Mic & Headphones (New Drop)
-            snippet: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3" // Lowrider Trunk Vault (Unreleased)
-        },
-        records: [
-            { title: "everything will be aok", date: "August 2026", cover: "https://via.placeholder.com/150/1a110b/7289da?text=AOK" },
-            { title: "luciano / sosapain", date: "Late 2026", cover: "https://via.placeholder.com/150/1a110b/7289da?text=LUCIANO" },
-            { title: "odgeekin", date: "2026", cover: "https://via.placeholder.com/150/1a110b/7289da?text=ODGEEKIN" }
-        ],
-        sessionNotes: "1. Lock in melodic vocal delivery on 'luciano'.\n2. Keep 808s saturated and hitting heavy.\n3. Rollout video sync check with CapCut visualizers.",
-        flyerImage: "https://via.placeholder.com/300x400/181820/ffffff?text=Official+Event+Flyer"
+        keys: {},
+        nearObject: null,
+        adminUnlocked: false
     };
 
-    // Load from LocalStorage or initialize defaults
-    let studioData = JSON.parse(localStorage.getItem('sosa_studio_config')) || DEFAULT_STUDIO_DATA;
+    // Safe Data Storage Initializer
+    function initLocalStorage() {
+        if (!localStorage.getItem('sosa_tracks')) {
+            localStorage.setItem('sosa_tracks', JSON.stringify([]));
+        }
+        if (!localStorage.getItem('sosa_admin_settings')) {
+            localStorage.setItem('sosa_admin_settings', JSON.stringify({ code: '2323' }));
+        }
+    }
+    initLocalStorage();
+</script>
+    // ==========================================
+    // PART 2: HIGH-DETAIL ROOM & PROP RENDERER
+    // ==========================================
 
-    function saveStudioData() {
-        localStorage.setItem('sosa_studio_config', JSON.stringify(studioData));
+    // Sample dynamic track/record memory to populate wall releases
+    function getStoredTracks() {
+        try {
+            const saved = localStorage.getItem('sosa_tracks');
+            return saved ? JSON.parse(saved) : [];
+        } catch(e) {
+            return [];
+        }
     }
 
-    // --- ADJUSTED PROMPT POSITION & LOWRIDER POSITION OVERRIDES ---
-    // Repositioning prompt box higher up so it clears mobile D-pad controls
-    const stylePatch = document.createElement('style');
-    stylePatch.innerHTML = `
-        @media (max-width: 800px), (min-width: 1px) {
-            /* Adjust interaction prompt container position dynamically if needed */
+    function drawRoom() {
+        if (state.currentRoom === 'studio') {
+            drawStudioRoom();
+        } else if (state.currentRoom === 'street') {
+            drawStreetZone();
         }
-    `;
-    document.head.appendChild(stylePatch);
+    }
 
-    // --- DYNAMIC MODAL EVENT INJECTOR ---
-    window.addEventListener('openStudioModal', (e) => {
-        const { id, room } = e.detail;
-        const body = document.getElementById('modal-body');
-        body.innerHTML = ''; // Clear previous content
+    // 1. STUDIO CONTROL ROOM RENDERER
+    function drawStudioRoom() {
+        // --- Back Wall (Charcoal Brick & Acoustic Foam) ---
+        ctx.fillStyle = '#181a20';
+        ctx.fillRect(0, 0, canvas.width, 420);
 
-        if (id === 'lowrider_trunk') {
-            body.innerHTML = `
-                <div style="text-align: center; padding: 10px;">
-                    <p style="color: #7289da; font-weight: bold; margin-bottom: 12px;">🔒 STEALTH TRUNK VAULT UNLOCKED</p>
-                    <p style="font-size: 12px; color: #aaa; margin-bottom: 15px;">Playing unreleased exclusive audio snippet.</p>
-                    <audio controls autoplay style="width: 100%; margin-top: 10px;" src="${studioData.tracks.snippet}"></audio>
-                </div>
-            `;
-        } else if (id === 'studio_monitors') {
-            body.innerHTML = `
-                <div style="text-align: center; padding: 10px;">
-                    <p style="color: #fff; font-weight: bold; margin-bottom: 10px;">🔊 MASSIVE STUDIO MONITORS</p>
-                    <p style="font-size: 12px; color: #888; margin-bottom: 15px;">Streaming official dropped catalog & EPs.</p>
-                    <audio controls style="width: 100%;" src="${studioData.tracks.catalog}"></audio>
-                </div>
-            `;
-        } else if (id === 'mic_headphones') {
-            body.innerHTML = `
-                <div style="text-align: center; padding: 10px;">
-                    <p style="color: #7289da; font-weight: bold; margin-bottom: 10px;">🎙️ STUDIO MIC & HEADPHONES</p>
-                    <p style="font-size: 12px; color: #888; margin-bottom: 15px;">Private preview session for upcoming releases.</p>
-                    <audio controls style="width: 100%;" src="${studioData.tracks.newRelease}"></audio>
-                </div>
-            `;
-        } else if (id === 'mixing_desk') {
-            body.innerHTML = `
-                <div style="text-align: center; padding: 10px;">
-                    <p style="font-weight: bold; margin-bottom: 10px;">🎛️ MIXING CONSOLE VISUALIZER</p>
-                    <div style="width: 100%; height: 160px; background: #000; border: 1px solid #333; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden;">
-                        <div style="color: #7289da; font-family: monospace; font-size: 11px; letter-spacing: 2px;">[ LIVE VISUALIZER FEED ACTIVE ]</div>
-                    </div>
-                </div>
-            `;
-        } else if (id === 'couch_phone') {
-            body.innerHTML = `
-                <div style="padding: 5px;">
-                    <p style="font-weight: bold; margin-bottom: 15px; text-align: center;">📱 IN-GAME SMARTPHONE & SOCIALS</p>
-                    <div style="display: flex; flex-direction: column; gap: 10px;">
-                        <a href="${studioData.socials.spotify}" target="_blank" style="display: block; padding: 10px; background: #1db954; color: #000; text-align: center; font-weight: bold; text-decoration: none; border-radius: 4px;">Spotify Catalog</a>
-                        <a href="${studioData.socials.apple}" target="_blank" style="display: block; padding: 10px; background: #fa243c; color: #fff; text-align: center; font-weight: bold; text-decoration: none; border-radius: 4px;">Apple Music</a>
-                        <a href="${studioData.socials.instagram}" target="_blank" style="display: block; padding: 10px; background: #e1306c; color: #fff; text-align: center; font-weight: bold; text-decoration: none; border-radius: 4px;">Instagram</a>
-                        <a href="${studioData.socials.distrokid}" target="_blank" style="display: block; padding: 10px; background: #202020; color: #00ffcc; text-align: center; font-weight: bold; text-decoration: none; border-radius: 4px; border: 1px solid #00ffcc;">DistroKid Hub</a>
-                    </div>
-                </div>
-            `;
-        } else if (id === 'wall_records') {
-            let recordsHtml = studioData.records.map(rec => `
-                <div style="display: flex; align-items: center; gap: 15px; background: rgba(255,255,255,0.03); padding: 10px; border-radius: 4px; border: 1px solid #222;">
-                    <img src="${rec.cover}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 3px;" alt="Cover Art">
-                    <div>
-                        <div style="font-weight: bold; color: #fff; font-size: 13px;">${rec.title}</div>
-                        <div style="font-size: 11px; color: #888; margin-top: 3px;">Released: ${rec.date}</div>
-                    </div>
-                </div>
-            `).join('');
-
-            body.innerHTML = `
-                <div style="display: flex; flex-direction: column; gap: 10px;">
-                    <p style="font-weight: bold; margin-bottom: 5px; color: #7289da;">🏆 CONTROL ROOM WALL DISCOGRAPHY</p>
-                    ${recordsHtml}
-                </div>
-            `;
-        } else if (id === 'session_gear') {
-            body.innerHTML = `
-                <div style="padding: 5px;">
-                    <p style="font-weight: bold; margin-bottom: 10px; color: #7289da;">📝 STUDIO SESSION & LYRIC NOTES</p>
-                    <textarea readonly style="width: 100%; height: 180px; background: #0a0a0c; color: #00ffcc; border: 1px solid #333; padding: 10px; font-family: monospace; font-size: 12px; border-radius: 4px; resize: none;">${studioData.sessionNotes}</textarea>
-                </div>
-            `;
-        } else if (id === 'interview_camera') {
-            body.innerHTML = `
-                <div style="text-align: center; padding: 10px;">
-                    <p style="font-weight: bold; margin-bottom: 10px;">🎥 0.5x WIDE-ANGLE INTERVIEW RIG</p>
-                    <div style="width: 100%; height: 180px; background: #111; border: 1px solid #333; display: flex; align-items: center; justify-content: center; color: #666; font-size: 12px;">
-                        [ PRESS ROLLOUT FEED ACTIVE ]
-                    </div>
-                </div>
-            `;
-        } else if (id === 'event_flyer') {
-            body.innerHTML = `
-                <div style="text-align: center; padding: 5px;">
-                    <img src="${studioData.flyerImage}" style="max-width: 100%; max-height: 250px; border-radius: 4px; border: 1px solid #333;" alt="Event Flyer">
-                </div>
-            `;
-        } else {
-            body.innerHTML = `<p style="text-align: center; color: #888;">Interactive object data loading...</p>`;
+        // Brick Grid Patterns
+        ctx.strokeStyle = '#22252e';
+        ctx.lineWidth = 1;
+        for (let y = 0; y < 420; y += 20) {
+            ctx.beginPath();
+            ctx.moveTo(0, y);
+            ctx.lineTo(canvas.width, y);
+            ctx.stroke();
         }
-    });
+        for (let y = 0; y < 420; y += 20) {
+            let offset = (y / 20) % 2 === 0 ? 0 : 25;
+            for (let x = offset; x < canvas.width; x += 50) {
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+                ctx.lineTo(x, y + 20);
+                ctx.stroke();
+            }
+        }
 
-    // --- SECRET PIN 2323 ADMIN BACKEND LISTENER ---
-    let keyBuffer = "";
+        // Acoustic Foam Panels (Left & Right Sections)
+        drawAcousticPanels(30, 60, 100, 140);
+        drawAcousticPanels(670, 60, 100, 140);
+
+        // --- Wall Records & Release Dates (Interactive Art) ---
+        drawFramedRecord(160, 80, "EVERYTHING WILL BE AOK", "AUG 2026", "#00f0ff");
+        drawFramedRecord(540, 80, "LUCIANO / SOSAPAIN", "UPCOMING", "#ff0055");
+
+        // --- MDM Neon Wall Sign ---
+        ctx.fillStyle = 'rgba(0, 240, 255, 0.08)';
+        ctx.beginPath();
+        ctx.arc(400, 100, 90, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#00f0ff';
+        ctx.font = '900 28px "Courier New", monospace';
+        ctx.textAlign = 'center';
+        ctx.shadowColor = '#00f0ff';
+        ctx.shadowBlur = 12;
+        ctx.fillText("M D M", 400, 105);
+        ctx.shadowBlur = 0; // Reset shadow glow
+
+        // --- Studio Floor Line (Grounded Arch) ---
+        ctx.fillStyle = '#2d2118'; // Dark polished wood floor
+        ctx.fillRect(0, 420, canvas.width, 180);
+
+        // Floor Planks
+        ctx.strokeStyle = '#201711';
+        for (let y = 420; y < canvas.width; y += 24) {
+            ctx.beginPath();
+            ctx.moveTo(0, y);
+            ctx.lineTo(canvas.width, y);
+            ctx.stroke();
+        }
+
+        // Studio Area Rug
+        ctx.fillStyle = '#121318';
+        ctx.fillRect(18
+    // ==========================================
+    // PART 3: MOVEMENT, CONTROLS & PROXIMITY ENGINE
+    // ==========================================
+
+    // Handle Keyboard Input Listeners
     window.addEventListener('keydown', (e) => {
-        // Collect key presses to check for secret PIN or trigger
-        keyBuffer += e.key;
-        if (keyBuffer.length > 10) keyBuffer = keyBuffer.slice(-10);
-
-        if (keyBuffer.includes(studioData.pin)) {
-            keyBuffer = "";
-            openAdminDashboard();
+        state.keys[e.key.toLowerCase()] = true;
+        if (e.key === 'e' || e.key === 'E') {
+            triggerInteraction();
         }
     });
+
+    window.addEventListener('keyup', (e) => {
+        state.keys[e.key.toLowerCase()] = false;
+    });
+
+    // Handle Mobile D-Pad Touch/Click Listeners
+    const bindTouchButton = (id, keyName) => {
+        const btn = document.getElementById(id);
+        if (!btn) return;
+        btn.addEventListener('touchstart', (e) => { e.preventDefault(); state.keys[keyName] = true; });
+        btn.addEventListener('touchend', (e) => { e.preventDefault(); state.keys[keyName] = false; });
+        btn.addEventListener('mousedown', () => { state.keys[keyName] = true; });
+        btn.addEventListener('mouseup', () => { state.keys[keyName] = false; });
+        btn.addEventListener('mouseleave', () => { state.keys[keyName] = false; });
+    };
+
+    bindTouchButton('btn-up', 'arrowup');
+    bindTouchButton('btn-down', 'arrowdown');
+    bindTouchButton('btn-left', 'arrowleft');
+    bindTouchButton('btn-right', 'arrowright');
+
+    document.getElementById('btn-interact').addEventListener('click', () => {
+        triggerInteraction();
+    });
+
+    // Update Player Position & Boundaries
+    function updatePlayer() {
+        let moving = false;
+        let p = state.player;
+
+        if (state.keys['arrowup'] || state.keys['w']) {
+            p.y -= p.speed;
+            p.direction = 'up';
+            moving = true;
+        }
+        if (state.keys['arrowdown'] || state.keys['s']) {
+            p.y += p.speed;
+            p.direction = 'down';
+            moving = true;
+        }
+        if (state.keys['arrowleft'] || state.keys['a']) {
+            p.x -= p.speed;
+            p.direction = 'left';
+            moving = true;
+        }
+        if (state.keys['arrowright'] || state.keys['d']) {
+            p.x += p.speed;
+            p.direction = 'right';
+            moving = true;
+        }
+
+        p.isMoving = moving;
+
+        // Room Boundary Restrictions
+        if (state.currentRoom === 'studio') {
+            // Studio Floor boundaries (y ranges from 420 floor line down to 540)
+            if (p.x < 40) p.x = 40;
+            if (p.x > canvas.width - 40 - p.width) p.x = canvas.width - 40 - p.width;
+            if (p.y < 350) p.y = 350;
+            if (p.y > 540) p.y = 540;
+        } else if (state.currentRoom === 'street') {
+            // Street zone boundaries
+            if (p.x < 20) p.x = 20;
+            if (p.x > canvas.width - 20 - p.width) p.x = canvas.width - 20 - p.width;
+            if (p.y < 380) p.y = 380;
+            if (p.y > 540) p.y = 540;
+        }
+
+        checkProximity();
+    }
+
+    // Check Proximity to Interactive Hotspots
+    function checkProximity() {
+        let p = state.player;
+        let pCenterX = p.x + p.width / 2;
+        let pCenterY = p.y + p.height / 2;
+        let interactBtn = document.getElementById('btn-interact');
+
+        state.nearObject = null;
+
+        if (state.currentRoom === 'studio') {
+            // Check Exit Door (x: 710 to 756, y: 340 to 420)
+            let doorDist = Math.hypot(pCenterX - 733, pCenterY - 380);
+            if (doorDist < 60) {
+                state.nearObject = 'door_to_street';
+            }
+            // Check Wall Records / Art
+            let artDist = Math.hypot(pCenterX - 210, pCenterY - 110);
+            if (artDist < 70) {
+                state.nearObject = 'wall_records';
+            }
+        } else if (state.currentRoom === 'street') {
+            // Check Entrance Door back to studio (x: 80 to 130, y: 340 to 420)
+            let enterDist = Math.hypot(pCenterX - 105, pCenterY - 380);
+            if (enterDist < 60) {
+                state.nearObject = 'door_to_studio';
+            }
+            // Check MDM Graffiti Wall (x: 320 to 480, y: 280 to 350) -> ADMIN TRIGGER
+            let graffitiDist = Math.hypot(pCenterX - 400, pCenterY - 315);
+            if (graffitiDist < 75) {
+                state.nearObject = 'mdm_graffiti_admin';
+            }
+        }
+
+        // Highlight interaction button when near an object
+        if (state.nearObject) {
+            interactBtn.style.opacity = '1';
+            interactBtn.style.boxShadow = '0 0 15px rgba(0, 240, 255, 0.6)';
+        } else {
+            interactBtn.style.opacity = '0.7';
+            interactBtn.style.boxShadow = '0 0 10px rgba(0, 240, 255, 0.3)';
+        }
+    }
+
+    // Draw Character Avatar on Screen (Proportioned Correctly)
+    function drawPlayer() {
+        let p = state.player;
+
+        // Player Shadow
+        ctx.fillStyle = 'rgba(0,0,0,0.5)';
+        ctx.beginPath();
+        ctx.ellipse(p.x + p.width / 2, p.y + p.height, p.width / 2, 6, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Streetwear Outfit (Dark All-Black Neo-Noir Aesthetic)
+        ctx.fillStyle = '#111318'; // Jacket / Hoodie body
+        ctx.fillRect(p.x + 4, p.y + 16, 28, 26);
+
+        // Pants
+        ctx.fillStyle = '#181b22';
+        ctx.fillRect(p.x + 6, p.y + 40, 10, 12);
+        ctx.fillRect(p.x + 20, p.y + 40, 10, 12);
+
+        // Head & Curly Hair Feature
+        ctx.fillStyle = '#f2d3bc'; // Face skin tone
+        ctx.fillRect(p.x + 10, p.y + 4, 16, 14);
+
+        ctx.fillStyle = '#22160b'; // Curly hair texture
+        ctx.fillRect(p.x + 8, p.y, 20, 6);
+        ctx.fillRect(p.x + 7, p.y + 3, 4, 6);
+        ctx.fillRect(p.x + 25, p.y + 3, 4, 6);
+
+        // Maison Margiela-style Footwear / Sneaker details
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(p.x + 5, p.y + 50, 10, 3);
+        ctx.fillRect(p.x + 21, p.y + 50, 10, 3);
+    }
+    // ==========================================
+    // PART 4: GAME LOOP, INTERACTION & ADMIN BACKEND
+    // ==========================================
+
+    // Trigger Interaction (Called by [E] key or Intercept Button)
+    function triggerInteraction() {
+        if (!state.nearObject) return;
+
+        if (state.nearObject === 'door_to_street') {
+            state.currentRoom = 'street';
+            state.player.x = 120;
+            state.player.y = 430;
+            document.getElementById('hud-zone').textContent = 'Zone: Street Entrance';
+        } 
+        else if (state.nearObject === 'door_to_studio') {
+            state.currentRoom = 'studio';
+            state.player.x = 680;
+            state.player.y = 430;
+            document.getElementById('hud-zone').textContent = 'Zone: Control Room';
+        }
+        else if (state.nearObject === 'wall_records') {
+            alert("Featured Releases: 'EVERYTHING WILL BE AOK' (Out Now) & Upcoming: 'LUCIANO' / 'SOSAPAIN'.");
+        }
+        else if (state.nearObject === 'mdm_graffiti_admin') {
+            openAdminLoginModal();
+        }
+    }
+
+    // --- Admin PIN Modal & Dashboard System ---
+    function openAdminLoginModal() {
+        let pin = prompt("Enter Secret Admin Passcode:");
+        if (pin === null) return;
+
+        let settings = JSON.parse(localStorage.getItem('sosa_admin_settings') || '{"code":"2323"}');
+        
+        if (pin === settings.code) {
+            state.adminUnlocked = true;
+            openAdminDashboard();
+        } else {
+            alert("Incorrect Passcode.");
+        }
+    }
 
     function openAdminDashboard() {
-        const modal = document.getElementById('game-modal');
-        const title = document.getElementById('modal-title');
-        const body = document.getElementById('modal-body');
+        // Create or show admin management overlay UI dynamically
+        let existingModal = document.getElementById('admin-dashboard-modal');
+        if (existingModal) existingModal.remove();
 
-        title.innerText = "🔒 CREATOR ADMIN BACKEND (PIN 2323)";
-        body.innerHTML = `
-            <div style="display: flex; flex-direction: column; gap: 12px; font-size: 12px;">
-                <p style="color: #7289da; font-weight: bold;">Live-edit studio metadata, audio streams, and session notes. Saved locally.</p>
+        let modal = document.createElement('div');
+        modal.id = 'admin-dashboard-modal';
+        modal.style.cssText = `
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(13, 14, 18, 0.92); display: flex; flex-direction: column;
+            align-items: center; justify-content: center; z-index: 1000; font-family: 'Courier New', monospace; color: #fff; padding: 20px;
+        `;
+
+        let tracks = getStoredTracks();
+
+        modal.innerHTML = `
+            <div style="background: #14161d; border: 2px solid #00f0ff; padding: 24px; border-radius: 12px; width: 100%; max-width: 500px; box-shadow: 0 0 20px rgba(0,240,255,0.3);">
+                <h2 style="color: #00f0ff; margin-bottom: 12px; font-size: 20px; letter-spacing: 1px;">SOSA STUDIO // ADMIN DASHBOARD</h2>
+                <p style="font-size: 12px; color: #8a8f9e; margin-bottom: 20px;">Manage audio tracks, release dates, visualizers, and rollout links.</p>
                 
-                <label>Catalog Audio URL (Studio Monitors):</label>
-                <input type="text" id="admin-catalog" value="${studioData.tracks.catalog}" style="width: 100%; padding: 6px; background: #000; color: #fff; border: 1px solid #444; border-radius: 3px;">
+                <div style="margin-bottom: 15px;">
+                    <label style="font-size: 12px; color: #00f0ff; display: block; margin-bottom: 5px;">Track Name:</label>
+                    <input type="text" id="adm-track-name" placeholder="e.g. luciano / sosapain" style="width: 100%; padding: 8px; background: #0d0e12; border: 1px solid #3a3f52; color: #fff; border-radius: 4px;">
+                </div>
 
-                <label>New Release Audio URL (Mic & Headphones):</label>
-                <input type="text" id="admin-new" value="${studioData.tracks.newRelease}" style="width: 100%; padding: 6px; background: #000; color: #fff; border: 1px solid #444; border-radius: 3px;">
+                <div style="margin-bottom: 15px;">
+                    <label style="font-size: 12px; color: #00f0ff; display: block; margin-bottom: 5px;">Release Date / Status Text:</label>
+                    <input type="text" id="adm-track-date" placeholder="e.g. NOV 2026 / OUT NOW" style="width: 100%; padding: 8px; background: #0d0e12; border: 1px solid #3a3f52; color: #fff; border-radius: 4px;">
+                </div>
 
-                <label>Unreleased Snippet Audio URL (Lowrider Trunk):</label>
-                <input type="text" id="admin-snippet" value="${studioData.tracks.snippet}" style="width: 100%; padding: 6px; background: #000; color: #fff; border: 1px solid #444; border-radius: 3px;">
+                <div style="margin-bottom: 20px;">
+                    <label style="font-size: 12px; color: #00f0ff; display: block; margin-bottom: 5px;">Streaming / Video Link (DistroKid / YouTube):</label>
+                    <input type="text" id="adm-track-link" placeholder="https://distrokid.com/..." style="width: 100%; padding: 8px; background: #0d0e12; border: 1px solid #3a3f52; color: #fff; border-radius: 4px;">
+                </div>
 
-                <label>Studio Session Notes & Lyrics:</label>
-                <textarea id="admin-notes" style="width: 100%; height: 80px; padding: 6px; background: #000; color: #00ffcc; border: 1px solid #444; border-radius: 3px; font-family: monospace;">${studioData.sessionNotes}</textarea>
-
-                <button id="admin-save-btn" style="padding: 10px; background: #7289da; color: #fff; font-weight: bold; border: none; border-radius: 4px; cursor: pointer; margin-top: 5px;">SAVE CHANGES TO LOCALSTORAGE</button>
+                <div style="display: flex; gap: 10px;">
+                    <button id="adm-save-btn" style="flex: 1; padding: 10px; background: #00f0ff; color: #0d0e12; border: none; font-weight: bold; border-radius: 6px; cursor: pointer;">SAVE TRACK</button>
+                    <button id="adm-close-btn" style="flex: 1; padding: 10px; background: #ff0055; color: #fff; border: none; font-weight: bold; border-radius: 6px; cursor: pointer;">CLOSE PANEL</button>
+                </div>
             </div>
         `;
 
-        modal.style.display = 'block';
+        document.body.appendChild(modal);
 
-        // Bind Save Handler
-        document.getElementById('admin-save-btn').onclick = () => {
-            studioData.tracks.catalog = document.getElementById('admin-catalog').value;
-            studioData.tracks.newRelease = document.getElementById('admin-new').value;
-            studioData.tracks.snippet = document.getElementById('admin-snippet').value;
-            studioData.sessionNotes = document.getElementById('admin-notes').value;
+        document.getElementById('adm-save-btn').addEventListener('click', () => {
+            let name = document.getElementById('adm-track-name').value;
+            let date = document.getElementById('adm-track-date').value;
+            let link = document.getElementById('adm-track-link').value;
 
-            saveStudioData();
-            alert("Studio configuration successfully saved!");
-            modal.style.display = 'none';
-        };
+            if (!name) {
+                alert("Please enter a track name.");
+                return;
+            }
+
+            let currentTracks = getStoredTracks();
+            currentTracks.push({ name, date, link });
+            localStorage.setItem('sosa_tracks', JSON.stringify(currentTracks));
+            alert("Track saved successfully to local storage!");
+            modal.remove();
+        });
+
+        document.getElementById('adm-close-btn').addEventListener('click', () => {
+            modal.remove();
+        });
     }
-</script>
 
+    // --- Core Main Game Loop (60 FPS Render & Update) ---
+    function gameLoop() {
+        // 1. Update Player position and check touch bounds
+        updatePlayer();
 
+        // 2. Clear canvas frame
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // 3. Draw Room scenery (Studio or Street based on state)
+        drawRoom();
+
+        // 4. Draw Player Avatar on top of room floor
+        drawPlayer();
+
+        // 5. Loop continuously
+        requestAnimationFrame(gameLoop);
+    }
+
+    // Start the game engine execution!
+    requestAnimationFrame(gameLoop);

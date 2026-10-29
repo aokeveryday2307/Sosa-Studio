@@ -139,7 +139,7 @@
 <body>
     <header>
         <h1>AOK // STUDIO</h1>
-        <div class="status-badge" id="mode-indicator">Studio Free Roam</div>
+        <div class="status-badge" id="mode-indicator">Control Room</div>
     </header>
     
     <div class="canvas-container">
@@ -155,7 +155,7 @@
             <button class="dpad-btn d-down" id="btn-down">▼</button>
         </div>
         <div class="action-buttons">
-            <button class="action-btn" id="btn-interact">Interact</button>
+            <button class="action-btn" id="btn-interact">Interact / Record</button>
             <button class="action-btn secondary-btn" id="btn-beat">Toggle Beat</button>
         </div>
     </div>
@@ -163,11 +163,14 @@
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
 
+        // Game state & multi-room setup
+        let currentRoom = 'control'; // 'control', 'booth', 'lounge'
+        
         let player = {
-            x: 180,
-            y: 100,
+            x: 192,
+            y: 112,
             size: 16,
-            speed: 2,
+            speed: 2.2,
             color: '#b084ff',
             dir: 'down'
         };
@@ -176,6 +179,8 @@
         let isBeatPlaying = false;
         let audioCtx = null;
         let beatInterval = null;
+        let interactionMessage = "";
+        let interactionTimer = 0;
 
         // Controls binding
         function setupButton(id, keyName) {
@@ -194,9 +199,7 @@
         setupButton('btn-right', 'right');
 
         document.getElementById('btn-interact').addEventListener('click', () => {
-            const indicator = document.getElementById('mode-indicator');
-            indicator.textContent = "Interacted with Studio Gear!";
-            setTimeout(() => { indicator.textContent = "Studio Free Roam"; }, 2000);
+            triggerInteraction();
         });
 
         document.getElementById('btn-beat').addEventListener('click', () => {
@@ -210,10 +213,37 @@
                 startAudioLoop();
             } else {
                 beatBtn.textContent = "Toggle Beat";
-                indicator.textContent = "Studio Free Roam";
+                indicator.textContent = capitalize(currentRoom) + " Room";
                 stopAudioLoop();
             }
         });
+
+        function capitalize(str) {
+            return str.charAt(0).toUpperCase() + str.slice(1) + " Room";
+        }
+
+        function triggerInteraction() {
+            const indicator = document.getElementById('mode-indicator');
+            if (currentRoom === 'control') {
+                showPopup("Mixing console active: EQ adjusted & levels locked in.");
+            } else if (currentRoom === 'booth') {
+                showPopup("Mic live: Recording vocal take in the booth...");
+            } else if (currentRoom === 'lounge') {
+                showPopup("Chilling in the lounge, brainstorming the next rollout.");
+            }
+        }
+
+        function showPopup(msg) {
+            interactionMessage = msg;
+            interactionTimer = 180; // frames
+            const indicator = document.getElementById('mode-indicator');
+            indicator.textContent = msg;
+            setTimeout(() => {
+                if (interactionTimer <= 0) {
+                    indicator.textContent = capitalize(currentRoom) + " Room";
+                }
+            }, 3000);
+        }
 
         function startAudioLoop() {
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -224,16 +254,16 @@
                 if (!isBeatPlaying) return;
                 let osc = audioCtx.createOscillator();
                 let gain = audioCtx.createGain();
-                osc.type = (step % 4 === 0) ? 'square' : 'sine';
-                osc.frequency.setValueAtTime((step % 4 === 0) ? 110 : 220, audioCtx.currentTime);
-                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
+                osc.type = (step % 4 === 0) ? 'square' : 'triangle';
+                osc.frequency.setValueAtTime((step % 4 === 0) ? 98 : 196, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.25);
                 osc.connect(gain);
                 gain.connect(audioCtx.destination);
                 osc.start();
-                osc.stop(audioCtx.currentTime + 0.2);
+                osc.stop(audioCtx.currentTime + 0.25);
                 step = (step + 1) % 8;
-            }, 250);
+            }, 240);
         }
 
         function stopAudioLoop() {
@@ -241,16 +271,65 @@
         }
 
         function update() {
-            if (keys.up && player.y > 10) player.y -= player.speed;
-            if (keys.down && player.y < canvas.height - 26) player.y += player.speed;
-            if (keys.left && player.x > 10) player.x -= player.speed;
-            if (keys.right && player.x < canvas.width - 26) player.x += player.speed;
+            // Movement logic with boundaries and room transitions
+            if (keys.up) player.y -= player.speed;
+            if (keys.down) player.y += player.speed;
+            if (keys.left) player.x -= player.speed;
+            if (keys.right) player.x += player.speed;
+
+            // Room transitions & wall collision limits
+            if (currentRoom === 'control') {
+                if (player.x < 16) player.x = 16;
+                if (player.x > canvas.width - 32) player.x = canvas.width - 32;
+                if (player.y < 16) player.y = 16;
+                if (player.y > canvas.height - 32) player.y = canvas.height - 32;
+
+                // Door to Booth (Right side)
+                if (player.x > canvas.width - 35 && player.y > 80 && player.y < 130) {
+                    currentRoom = 'booth';
+                    player.x = 24;
+                    player.y = 112;
+                    document.getElementById('mode-indicator').textContent = "Vocal Booth";
+                }
+                // Door to Lounge (Left side)
+                else if (player.x < 20 && player.y > 80 && player.y < 130) {
+                    currentRoom = 'lounge';
+                    player.x = canvas.width - 40;
+                    player.y = 112;
+                    document.getElementById('mode-indicator').textContent = "Lounge Area";
+                }
+            } else if (currentRoom === 'booth') {
+                if (player.x < 16) {
+                    // Return to Control Room
+                    currentRoom = 'control';
+                    player.x = canvas.width - 45;
+                    player.y = 105;
+                    document.getElementById('mode-indicator').textContent = "Control Room";
+                }
+                if (player.x > canvas.width - 32) player.x = canvas.width - 32;
+                if (player.y < 16) player.y = 16;
+                if (player.y > canvas.height - 32) player.y = canvas.height - 32;
+            } else if (currentRoom === 'lounge') {
+                if (player.x > canvas.width - 32) {
+                    // Return to Control Room
+                    currentRoom = 'control';
+                    player.x = 35;
+                    player.y = 105;
+                    document.getElementById('mode-indicator').textContent = "Control Room";
+                }
+                if (player.x < 16) player.x = 16;
+                if (player.y < 16) player.y = 16;
+                if (player.y > canvas.height - 32) player.y = canvas.height - 32;
+            }
+
+            if (interactionTimer > 0) interactionTimer--;
         }
 
-        function drawGrid() {
+        function drawBackground() {
             ctx.fillStyle = '#0b0b0e';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+            // Floor grid pattern
             ctx.strokeStyle = '#14141c';
             ctx.lineWidth = 1;
             for (let x = 0; x < canvas.width; x += 16) {
@@ -261,33 +340,95 @@
             }
         }
 
-        function drawStudioProps() {
-            // Mixing console desk
+        function drawControlRoom() {
+            // Walls & layout frame
+            ctx.strokeStyle = '#2d2d3c';
+            ctx.lineWidth = 4;
+            ctx.strokeRect(8, 8, canvas.width - 16, canvas.height - 16);
+
+            // Mixing console desk (Center)
             ctx.fillStyle = '#1e1e28';
-            ctx.fillRect(80, 50, 80, 40);
+            ctx.fillRect(112, 60, 160, 50);
+            ctx.strokeStyle = '#3a3a48';
+            ctx.strokeRect(112, 60, 160, 50);
+
+            // Gear details on desk (knobs, faders, monitors)
             ctx.fillStyle = '#b084ff';
-            ctx.fillRect(90, 60, 16, 10);
-            ctx.fillRect(115, 60, 10, 10);
+            ctx.fillRect(124, 72, 24, 12);
+            ctx.fillRect(156, 72, 16, 12);
+            ctx.fillStyle = '#ff84e8';
+            ctx.fillRect(184, 70, 40, 16); // DAW screen glow
 
             // Studio Monitors / Speakers
             ctx.fillStyle = '#181820';
-            ctx.fillRect(260, 50, 32, 40);
-            ctx.fillStyle = '#3a3a48';
-            ctx.beginPath(); ctx.arc(276, 70, 8, 0, Math.PI * 2); ctx.fill();
+            ctx.fillRect(80, 55, 24, 40);
+            ctx.fillRect(280, 55, 24, 40);
+            ctx.fillStyle = '#4a4a5e';
+            ctx.beginPath(); ctx.arc(92, 75, 6, 0, Math.PI * 2); ctx.fill();
+            ctx.beginPath(); ctx.arc(292, 75, 6, 0, Math.PI * 2); ctx.fill();
+
+            // Doorway markers
+            ctx.fillStyle = '#b084ff';
+            ctx.fillRect(canvas.width - 12, 84, 8, 48); // to booth
+            ctx.fillRect(4, 84, 8, 48); // to lounge
+        }
+
+        function drawBoothRoom() {
+            ctx.strokeStyle = '#3a2e4c';
+            ctx.lineWidth = 4;
+            ctx.strokeRect(8, 8, canvas.width - 16, canvas.height - 16);
+
+            // Vocal Booth Mic Stand & Pop Filter
+            ctx.fillStyle = '#1e1e28';
+            ctx.fillRect(180, 80, 24, 60);
+            ctx.fillStyle = '#b084ff';
+            ctx.fillRect(188, 60, 8, 20); // Microphone
+            ctx.fillStyle = '#444';
+            ctx.beginPath(); ctx.arc(192, 56, 10, 0, Math.PI * 2); ctx.stroke(); // Pop filter
+
+            // Exit door back to Control
+            ctx.fillStyle = '#ff84e8';
+            ctx.fillRect(4, 84, 8, 48);
+        }
+
+        function drawLoungeRoom() {
+            ctx.strokeStyle = '#1e2e3c';
+            ctx.lineWidth = 4;
+            ctx.strokeRect(8, 8, canvas.width - 16, canvas.height - 16);
+
+            // Couch & Chill Setup
+            ctx.fillStyle = '#282838';
+            ctx.fillRect(140, 80, 100, 48);
+            ctx.fillStyle = '#b084ff';
+            ctx.fillRect(160, 92, 60, 24);
+
+            // Exit door back to Control
+            ctx.fillStyle = '#84ffff';
+            ctx.fillRect(canvas.width - 12, 84, 8, 48);
         }
 
         function drawPlayer() {
+            // Shadow
+            ctx.fillStyle = 'rgba(0,0,0,0.4)';
+            ctx.beginPath(); ctx.arc(player.x + player.size/2, player.y + player.size - 2, 6, 0, Math.PI * 2); ctx.fill();
+
+            // Player Body
             ctx.fillStyle = player.color;
             ctx.fillRect(player.x, player.y, player.size, player.size);
-            // Simple head / hair detail
+            
+            // Player Hair/Head detail (Curly hair style reference)
             ctx.fillStyle = '#ffffff';
-            ctx.fillRect(player.x + 3, player.y + 2, 10, 4);
+            ctx.fillRect(player.x + 2, player.y + 1, 12, 5);
         }
 
         function loop() {
             update();
-            drawGrid();
-            drawStudioProps();
+            drawBackground();
+
+            if (currentRoom === 'control') drawControlRoom();
+            else if (currentRoom === 'booth') drawBoothRoom();
+            else if (currentRoom === 'lounge') drawLoungeRoom();
+
             drawPlayer();
             requestAnimationFrame(loop);
         }

@@ -350,57 +350,188 @@
             ctx.fill();
         }
 
+                // Upgraded Detailed Pixel-Art Render Engine
         function drawRoom() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             const activeRoom = rooms[state.currentRoom];
 
-            // Render Floor Base
+            // Render Floor & Walls Background
             if (state.currentRoom === 'outside') {
-                ctx.fillStyle = '#181820';
+                ctx.fillStyle = '#181820'; // Dark night sky / outside background
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                // Brick wall texture lines on building
+                ctx.fillStyle = '#2d2528';
+                ctx.fillRect(100, 80, 600, 270);
+                ctx.strokeStyle = '#231d20';
+                for(let i = 100; i < 350; i += 20) {
+                    ctx.beginPath(); ctx.moveTo(100, i); ctx.lineTo(700, i); ctx.stroke();
+                }
+
                 // Street Asphalt
                 ctx.fillStyle = '#0f0f14';
                 ctx.fillRect(0, 350, canvas.width, 250);
-                // Exterior Building Wall
-                ctx.fillStyle = '#2d2528';
-                ctx.fillRect(100, 100, 600, 250);
+                // Road dashes
+                ctx.fillStyle = '#333';
+                for(let x = 50; x < canvas.width; x += 100) {
+                    ctx.fillRect(x, 470, 40, 4);
+                }
             } else {
-                // Studio Interior Floor
+                // Studio Interior Floor (Wood plank grid look)
                 ctx.fillStyle = '#1e1c24';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
-                // Studio Back Wall
+                ctx.strokeStyle = '#15131a';
+                for(let x = 0; x < canvas.width; x += 40) {
+                    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+                }
+                // Studio Acoustic Back Wall
                 ctx.fillStyle = '#121118';
-                ctx.fillRect(40, 40, 720, 160);
+                ctx.fillRect(40, 30, 720, 180);
+                // Acoustic foam panel lines
+                ctx.strokeStyle = '#1a1822';
+                for(let x = 60; x < 740; x += 60) {
+                    ctx.strokeRect(x, 40, 45, 160);
+                }
             }
 
             // Render Interactive Door Frameworks
             activeRoom.doors.forEach(door => {
-                ctx.fillStyle = '#5a4d6e';
+                ctx.fillStyle = '#3a324a';
                 ctx.fillRect(door.x, door.y, door.width, door.height);
-                ctx.fillStyle = '#a28bc2';
+                ctx.fillStyle = '#5a4d6e';
                 ctx.fillRect(door.x + 4, door.y + 4, door.width - 8, door.height - 8);
+                // Door knob/handle
+                ctx.fillStyle = '#a28bc2';
+                ctx.fillRect(door.x + 8, door.y + door.height / 2, 4, 8);
             });
 
-            // Render Interactive Room Props
+            // Render Detailed Room Props
             activeRoom.objects.forEach(obj => {
-                if (obj.stealth) {
-                    // Lowrider Car Base (Stealth render - Zero floating labels)
-                    ctx.fillStyle = '#12121a';
-                    ctx.fillRect(obj.x - 80, obj.y - 10, 150, 40);
-                    ctx.fillStyle = '#000';
-                    ctx.beginPath();
-                    ctx.arc(obj.x - 50, obj.y + 30, 10, 0, Math.PI * 2);
-                    ctx.arc(obj.x + 40, obj.y + 30, 10, 0, Math.PI * 2);
-                    ctx.fill();
-                } else {
-                    ctx.fillStyle = '#3a3a4c';
+                ctx.save();
+                if (obj.id === 'event_flyer') {
+                    // Detailed Flyer Poster
+                    ctx.fillStyle = '#f5f5f0';
                     ctx.fillRect(obj.x, obj.y, obj.width, obj.height);
-                    ctx.strokeStyle = '#6e6e8c';
+                    ctx.fillStyle = '#fa243c'; // Red accent header
+                    ctx.fillRect(obj.x, obj.y, obj.width, 10);
+                    ctx.fillStyle = '#111';
+                    ctx.fillRect(obj.x + 5, obj.y + 15, obj.width - 10, 4);
+                    ctx.fillRect(obj.x + 5, obj.y + 25, obj.width - 15, 3);
+                    ctx.fillRect(obj.x + 5, obj.y + 32, obj.width - 10, 3);
+                } else if (obj.id === 'mdm_graffiti') {
+                    // MDM Graffiti Tag
+                    ctx.fillStyle = '#00ffcc';
+                    ctx.font = 'bold 14px monospace';
+                    ctx.fillText("MDM", obj.x, obj.y + 20);
+                } else if (obj.id === 'lowrider_trunk') {
+                    // Detailed Lowrider Rear & Trunk
+                    ctx.fillStyle = '#16161f';
+                    ctx.fillRect(obj.x - 70, obj.y, 140, 45); // Car body
+                    ctx.fillStyle = '#222';
+                    ctx.beginPath(); // Tires
+                    ctx.arc(obj.x - 45, obj.y + 45, 12, 0, Math.PI * 2);
+                    ctx.arc(obj.x + 45, obj.y + 45, 12, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.fillStyle = '#silver'; // Chrome bumper
+                    ctx.fillRect(obj.x - 65, obj.y + 35, 130, 6);
+                } else if (obj.id === 'studio_monitors') {
+                    // Studio Monitor Speakers (Dual speakers with cones)
+                    ctx.fillStyle = '#1a1a24';
+                    ctx.fillRect(obj.x, obj.y, obj.width, obj.height);
+                    // Left Speaker Cones
+                    ctx.fillStyle = '#333';
+                    ctx.beginPath(); ctx.arc(obj.x + 30, obj.y + 25, 16, 0, Math.PI * 2); ctx.fill();
+                    ctx.fillStyle = '#ffaa00'; ctx.beginPath(); ctx.arc(obj.x + 30, obj.y + 25, 6, 0, Math.PI * 2); ctx.fill(); // Tweeter
+                    ctx.fillStyle = '#111'; ctx.beginPath(); ctx.arc(obj.x + 30, obj.y + 25, 12, 0, Math.PI * 2); ctx.fill();
+                    // Right Speaker Cones
+                    ctx.fillStyle = '#333';
+                    ctx.beginPath(); ctx.arc(obj.x + 90, obj.y + 25, 16, 0, Math.PI * 2); ctx.fill();
+                    ctx.fillStyle = '#ffaa00'; ctx.beginPath(); ctx.arc(obj.x + 90, obj.y + 25, 6, 0, Math.PI * 2); ctx.fill();
+                    ctx.fillStyle = '#111'; ctx.beginPath(); ctx.arc(obj.x + 90, obj.y + 25, 12, 0, Math.PI * 2); ctx.fill();
+                } else if (obj.id === 'mixing_desk') {
+                    // Mixing Console with Faders & Knobs
+                    ctx.fillStyle = '#22222d';
+                    ctx.fillRect(obj.x, obj.y, obj.width, obj.height);
+                    ctx.strokeStyle = '#444';
                     ctx.strokeRect(obj.x, obj.y, obj.width, obj.height);
+                    // Mixing knobs & fader channels
+                    for(let k = obj.x + 15; k < obj.x + obj.width - 15; k += 20) {
+                        ctx.fillStyle = '#7289da';
+                        ctx.fillRect(k, obj.y + 10, 4, 12); // Knob
+                        ctx.fillStyle = '#fa243c';
+                        ctx.fillRect(k + 1, obj.y + 35, 2, 18); // Fader line
+                        ctx.fillStyle = '#fff';
+                        ctx.fillRect(k - 1, obj.y + 42, 6, 6); // Fader cap
+                    }
+                } else if (obj.id === 'couch_phone') {
+                    // Actual Couch / Sofa with Phone on it
+                    ctx.fillStyle = '#2b2633'; // Couch base
+                    ctx.fillRect(obj.x, obj.y + 15, obj.width, obj.height - 15);
+                    ctx.fillStyle = '#383142'; // Cushions
+                    ctx.fillRect(obj.x + 5, obj.y + 10, 32, 30);
+                    ctx.fillRect(obj.x + 43, obj.y + 10, 32, 30);
+                    ctx.fillStyle = '#1f1b26'; // Couch backrest
+                    ctx.fillRect(obj.x, obj.y, obj.width, 15);
+                    // Phone laying on the couch
+                    ctx.fillStyle = '#0ff';
+                    ctx.fillRect(obj.x + 55, obj.y + 22, 10, 16);
+                } else if (obj.id === 'wall_records') {
+                    // Framed Vinyl Records on Wall
+                    ctx.fillStyle = '#252028';
+                    ctx.fillRect(obj.x, obj.y, obj.width, obj.height);
+                    ctx.strokeStyle = '#444';
+                    ctx.strokeRect(obj.x, obj.y, obj.width, obj.height);
+                    // Record frames inside
+                    ctx.fillStyle = '#111';
+                    ctx.fillRect(obj.x + 10, obj.y + 8, 24, 24);
+                    ctx.fillRect(obj.x + 55, obj.y + 8, 24, 24);
+                    ctx.fillRect(obj.x + 100, obj.y + 8, 24, 24);
+                    // Vinyl center labels
+                    ctx.fillStyle = '#7289da';
+                    ctx.beginPath(); ctx.arc(obj.x + 22, obj.y + 20, 4, 0, Math.PI * 2); ctx.fill();
+                    ctx.fillStyle = '#fa243c';
+                    ctx.beginPath(); ctx.arc(obj.x + 67, obj.y + 20, 4, 0, Math.PI * 2); ctx.fill();
+                    ctx.fillStyle = '#0ff';
+                    ctx.beginPath(); ctx.arc(obj.x + 112, obj.y + 20, 4, 0, Math.PI * 2); ctx.fill();
+                } else if (obj.id === 'mic_headphones') {
+                    // Vocal Mic Stand & Headphones
+                    ctx.fillStyle = '#444'; // Stand pole
+                    ctx.fillRect(obj.x + 22, obj.y + 10, 4, 50);
+                    ctx.fillStyle = '#aaa'; // Mic head
+                    ctx.fillRect(obj.x + 18, obj.y, 12, 14);
+                    // Headphones hanging nearby
+                    ctx.strokeStyle = '#7289da';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath(); ctx.arc(obj.x + 38, obj.y + 25, 10, Math.PI, Math.PI * 2); ctx.stroke();
+                } else if (obj.id === 'session_gear') {
+                    // Tracking Rig & Session Note Sheet on desk
+                    ctx.fillStyle = '#2a2833';
+                    ctx.fillRect(obj.x, obj.y, obj.width, obj.height);
+                    ctx.fillStyle = '#fff'; // Note paper
+                    ctx.fillRect(obj.x + 15, obj.y + 10, 30, 40);
+                    ctx.fillStyle = '#333'; // Text lines on paper
+                    ctx.fillRect(obj.x + 18, obj.y + 16, 24, 2);
+                    ctx.fillRect(obj.x + 18, obj.y + 22, 20, 2);
+                    ctx.fillRect(obj.x + 18, obj.y + 28, 22, 2);
+                } else if (obj.id === 'interview_camera') {
+                    // Interview Camera on Tripod
+                    ctx.fillStyle = '#333'; // Camera body
+                    ctx.fillRect(obj.x + 10, obj.y + 10, 25, 18);
+                    ctx.fillStyle = '#0ff'; // Lens
+                    ctx.fillRect(obj.x + 35, obj.y + 14, 8, 10);
+                    ctx.strokeStyle = '#555'; // Tripod legs
+                    ctx.beginPath();
+                    ctx.moveTo(obj.x + 22, obj.y + 28); ctx.lineTo(obj.x + 5, obj.y + 50);
+                    ctx.moveTo(obj.x + 22, obj.y + 28); ctx.lineTo(obj.x + 40, obj.y + 50);
+                    ctx.stroke();
                 }
             });
 
             drawPlayer();
+            checkProximity();
+            ctx.restore();
+        }
+
             checkProximity();
         }
 

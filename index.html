@@ -2,9 +2,17 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sosa's Studio // 2D Pixel Experience</title>
     <style>
+        :root {
+            --bg-color: #0a0a0c;
+            --accent-color: #7289da;
+            --text-color: #e0e0e0;
+            --hud-bg: rgba(15, 15, 20, 0.85);
+            --border-color: #2a2a35;
+        }
+
         * {
             box-sizing: border-box;
             margin: 0;
@@ -12,414 +20,510 @@
             user-select: none;
             -webkit-user-select: none;
         }
+
         body {
-            background-color: #08080c;
-            color: #f0f0f5;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            height: 100dvh;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Courier New', Courier, monospace;
             overflow: hidden;
-            align-items: center;
-        }
-        header {
-            width: 100%;
-            max-width: 500px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 16px;
-            background: #111116;
-            border-bottom: 1px solid #1f1f2b;
-        }
-        h1 {
-            font-size: 15px;
-            letter-spacing: 2px;
-            color: #b084ff;
-            font-weight: 800;
-        }
-        .status-badge {
-            font-size: 11px;
-            background: #1a1a24;
-            color: #a0a0b0;
-            padding: 4px 8px;
-            border-radius: 4px;
-            border: 1px solid #2a2a38;
-        }
-        .canvas-container {
-            width: 100%;
-            max-width: 500px;
-            flex-grow: 1;
-            background: #050508;
-            position: relative;
             display: flex;
             justify-content: center;
             align-items: center;
-            overflow: hidden;
-            border-bottom: 1px solid #1f1f2b;
+            min-height: 100vh;
         }
+
+        #game-container {
+            position: relative;
+            width: 800px;
+            height: 600px;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.9);
+            border: 2px solid var(--border-color);
+            background: #000;
+        }
+
         canvas {
-            background: #09090e;
             display: block;
-            image-rendering: pixelated;
-            image-rendering: crisp-edges;
-        }
-        .controls-panel {
             width: 100%;
-            max-width: 500px;
-            padding: 16px;
-            background: #111116;
+            height: 100%;
+            image-rendering: pixelated;
+        }
+
+        /* CRT Overlay Filter */
+        .crt-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+            background-size: 100% 4px, 6px 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        /* Top HUD Header */
+        #hud-header {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            height: 40px;
+            background: var(--hud-bg);
+            border: 1px solid var(--border-color);
             display: flex;
-            gap: 16px;
             justify-content: space-between;
             align-items: center;
+            padding: 0 15px;
+            z-index: 20;
+            border-radius: 4px;
         }
+
+        .hud-title {
+            font-weight: bold;
+            letter-spacing: 1px;
+            color: #fff;
+            text-transform: uppercase;
+            font-size: 14px;
+        }
+
+        .hud-location {
+            font-size: 12px;
+            color: #888899;
+        }
+
+        /* On-Screen Mobile & Action Controls */
+        #controls-overlay {
+            position: absolute;
+            bottom: 15px;
+            left: 15px;
+            right: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            z-index: 20;
+            pointer-events: none;
+        }
+
         .dpad {
             display: grid;
-            grid-template-columns: repeat(3, 44px);
-            grid-template-rows: repeat(3, 44px);
-            gap: 4px;
+            grid-template-columns: repeat(3, 40px);
+            grid-template-rows: repeat(3, 40px);
+            gap: 2px;
+            pointer-events: auto;
         }
-        .dpad-btn {
-            background: #1a1a24;
-            border: 1px solid #2a2a38;
-            color: #fff;
-            font-size: 16px;
-            border-radius: 8px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-        }
-        .dpad-btn:active {
-            background: #b084ff;
-            color: #08080c;
-        }
-        .d-up { grid-column: 2; grid-row: 1; }
-        .d-left { grid-column: 1; grid-row: 2; }
-        .d-center { grid-column: 2; grid-row: 2; background: #111116; border: none; pointer-events: none; }
-        .d-right { grid-column: 3; grid-row: 2; }
-        .d-down { grid-column: 2; grid-row: 3; }
 
-        .action-buttons {
+        .dpad-btn {
+            background: rgba(30, 30, 40, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
             display: flex;
-            flex-direction: column;
-            gap: 8px;
-            flex-grow: 1;
-        }
-        .action-btn {
-            background: #b084ff;
-            color: #08080c;
-            border: none;
-            padding: 14px;
-            font-weight: 700;
-            font-size: 14px;
-            border-radius: 8px;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            border-radius: 4px;
             cursor: pointer;
-            text-align: center;
-            box-shadow: 0 4px 12px rgba(176, 132, 255, 0.2);
         }
-        .action-btn:active {
-            transform: scale(0.98);
-            background: #9d6aff;
+
+        .dpad-btn:active {
+            background: rgba(100, 100, 150, 0.8);
         }
-        .secondary-btn {
-            background: #1a1a24;
-            color: #f0f0f5;
-            border: 1px solid #2a2a38;
-            box-shadow: none;
+
+        .action-btn-container {
+            pointer-events: auto;
+        }
+
+        .interact-btn {
+            width: 90px;
+            height: 45px;
+            background: rgba(114, 137, 218, 0.8);
+            border: 1px solid #ffffff;
+            color: #fff;
+            font-weight: bold;
+            font-family: inherit;
+            border-radius: 6px;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+            font-size: 12px;
+            letter-spacing: 1px;
+        }
+
+        .interact-btn:active {
+            transform: translateY(2px);
+            background: rgba(114, 137, 218, 1);
+        }
+
+        /* Generic Modal UI Frame */
+        .modal {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 85%;
+            max-width: 600px;
+            background: rgba(15, 15, 22, 0.95);
+            border: 2px solid var(--border-color);
+            box-shadow: 0 0 25px rgba(0, 0, 0, 0.9);
+            border-radius: 8px;
+            padding: 20px;
+            z-index: 30;
+            color: #fff;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+
+        .modal-title {
+            font-size: 16px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            color: var(--accent-color);
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: #888;
+            font-size: 20px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .close-btn:hover {
+            color: #fff;
+        }
+
+        .modal-body {
+            max-height: 380px;
+            overflow-y: auto;
+            font-size: 13px;
+            line-height: 1.5;
         }
     </style>
 </head>
 <body>
-    <header>
-        <h1>SOSA // STUDIO</h1>
-        <div class="status-badge" id="mode-indicator">Control Room</div>
-    </header>
-    
-    <div class="canvas-container">
-        <canvas id="gameCanvas" width="384" height="224"></canvas>
+
+    <div id="game-container">
+        <div class="crt-overlay"></div>
+
+        <!-- HUD Header (No PIN text displayed) -->
+        <div id="hud-header">
+            <div class="hud-title">Sosa's Studio</div>
+            <div class="hud-location" id="room-indicator">Zone: Street Entrance</div>
+        </div>
+
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+
+        <!-- On-Screen Controls -->
+        <div id="controls-overlay">
+            <div class="dpad">
+                <div></div>
+                <div class="dpad-btn" id="btn-up">▲</div>
+                <div></div>
+                <div class="dpad-btn" id="btn-left">◄</div>
+                <div></div>
+                <div class="dpad-btn" id="btn-right">►</div>
+                <div></div>
+                <div class="dpad-btn" id="btn-down">▼</div>
+                <div></div>
+            </div>
+            <div class="action-btn-container">
+                <button class="interact-btn" id="btn-interact">[E] INTERACT</button>
+            </div>
+        </div>
+
+        <!-- Universal Interactive Modal -->
+        <div class="modal" id="game-modal">
+            <div class="modal-header">
+                <div class="modal-title" id="modal-title">Interactive Display</div>
+                <button class="close-btn" id="modal-close">&times;</button>
+            </div>
+            <div class="modal-body" id="modal-body">
+                <!-- Content injected dynamically -->
+            </div>
+        </div>
     </div>
 
-    <div class="controls-panel">
-        <div class="dpad">
-            <button class="dpad-btn d-up" id="btn-up">▲</button>
-            <button class="dpad-btn d-left" id="btn-left">◀</button>
-            <div class="dpad-btn d-center"></div>
-            <button class="dpad-btn d-right" id="btn-right">▶</button>
-            <button class="dpad-btn d-down" id="btn-down">▼</button>
-        </div>
-        <div class="action-buttons">
-            <button class="action-btn" id="btn-interact">Interact</button>
-            <button class="action-btn secondary-btn" id="btn-beat">Toggle Beat</button>
-        </div>
-    </div>
     <script>
+        // Core Web Audio Controller Engine
+        const AudioEngine = {
+            ctx: null,
+            init() {
+                if (!this.ctx) {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+            },
+            playTone(freq = 440, type = 'sine', duration = 0.2) {
+                this.init();
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+                gain.gain.setValueAtTime(0.1, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + duration);
+            }
+        };
+
+        // Canvas & Game State Context
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
 
-        // Game state & multi-room setup
-        let currentRoom = 'control'; // 'control', 'booth', 'lounge'
-        
-        let player = {
-            x: 192,
-            y: 112,
-            size: 16,
-            speed: 2.2,
-            color: '#b084ff',
-            dir: 'down'
+        const state = {
+            currentRoom: 'outside', // Options: 'outside', 'control_room', 'studio_room'
+            keys: { up: false, down: false, left: false, right: false },
+            player: {
+                x: 400,
+                y: 420,
+                width: 24,
+                height: 32,
+                speed: 3,
+                direction: 'down'
+            },
+            nearObject: null
         };
 
-        let keys = { up: false, down: false, left: false, right: false };
-        let isBeatPlaying = false;
-        let audioCtx = null;
-        let beatInterval = null;
-        let interactionMessage = "";
-        let interactionTimer = 0;
-
-        // Controls binding
-        function setupButton(id, keyName) {
-            const btn = document.getElementById(id);
-            ['mousedown', 'touchstart'].forEach(evt => {
-                btn.addEventListener(evt, (e) => { e.preventDefault(); keys[keyName] = true; });
-            });
-            ['mouseup', 'touchend', 'touchcancel'].forEach(evt => {
-                btn.addEventListener(evt, (e) => { e.preventDefault(); keys[keyName] = false; });
-            });
-        }
-
-        setupButton('btn-up', 'up');
-        setupButton('btn-down', 'down');
-        setupButton('btn-left', 'left');
-        setupButton('btn-right', 'right');
-
-        document.getElementById('btn-interact').addEventListener('click', () => {
-            triggerInteraction();
-        });
-
-        document.getElementById('btn-beat').addEventListener('click', () => {
-            isBeatPlaying = !isBeatPlaying;
-            const beatBtn = document.getElementById('btn-beat');
-            const indicator = document.getElementById('mode-indicator');
-            
-            if (isBeatPlaying) {
-                beatBtn.textContent = "Stop Beat";
-                indicator.textContent = "Beat Playing ♫";
-                startAudioLoop();
-            } else {
-                beatBtn.textContent = "Toggle Beat";
-                indicator.textContent = capitalize(currentRoom) + " Room";
-                stopAudioLoop();
+        // Room & Interactive Object Definitions
+        const rooms = {
+            outside: {
+                name: "Outside Area",
+                doors: [
+                    { id: "door_studio_entry", x: 370, y: 220, width: 60, height: 40, targetRoom: "control_room", targetX: 400, targetY: 500, label: "Enter Studio" }
+                ],
+                objects: [
+                    { id: "event_flyer", x: 180, y: 220, width: 40, height: 50, title: "Official Event Flyer", label: "Inspect Event Flyer" },
+                    { id: "mdm_graffiti", x: 580, y: 250, width: 50, height: 30, title: "Wall Tag", label: "Inspect Graffiti Tag" },
+                    { id: "lowrider_trunk", x: 620, y: 410, width: 70, height: 50, title: "Lowrider Trunk", label: "Inspect Lowrider", stealth: true }
+                ]
+            },
+            control_room: {
+                name: "Control Room (Hub)",
+                doors: [
+                    { id: "door_exit_street", x: 370, y: 530, width: 60, height: 40, targetRoom: "outside", targetX: 400, targetY: 280, label: "Exit to Street" },
+                    { id: "door_studio_booth", x: 720, y: 270, width: 40, height: 60, targetRoom: "studio_room", targetX: 100, targetY: 300, label: "Enter Studio Booth" }
+                ],
+                objects: [
+                    { id: "studio_monitors", x: 340, y: 180, width: 120, height: 50, title: "Studio Monitors", label: "Play Dropped Discography" },
+                    { id: "mixing_desk", x: 330, y: 240, width: 140, height: 60, title: "Mixing Console", label: "Open Audio Visualizer" },
+                    { id: "couch_phone", x: 120, y: 380, width: 80, height: 50, title: "Studio Couch Phone", label: "Access Social Links" },
+                    { id: "wall_records", x: 520, y: 160, width: 140, height: 40, title: "Wall Discography & Release Dates", label: "Inspect Release Dates" }
+                ]
+            },
+            studio_room: {
+                name: "Studio Room",
+                doors: [
+                    { id: "door_control_hub", x: 40, y: 270, width: 40, height: 60, targetRoom: "control_room", targetX: 660, targetY: 300, label: "Return to Control Room" }
+                ],
+                objects: [
+                    { id: "mic_headphones", x: 400, y: 260, width: 50, height: 60, title: "Vocal Mic & Headphones", label: "Preview New Music Drops" },
+                    { id: "session_gear", x: 220, y: 250, width: 80, height: 60, title: "Tracking Rig & Session Notes", label: "Read Session & Lyric Notes" },
+                    { id: "interview_camera", x: 600, y: 350, width: 50, height: 50, title: "0.5x Interview Camera Rig", label: "View Press & Visual Rollout" }
+                ]
             }
-        });
+        };
 
-        function capitalize(str) {
-            return str.charAt(0).toUpperCase() + str.slice(1) + " Room";
-        }
-
-        function triggerInteraction() {
-            const indicator = document.getElementById('mode-indicator');
-            if (currentRoom === 'control') {
-                showPopup("Mixing console active: EQ adjusted & levels locked in.");
-            } else if (currentRoom === 'booth') {
-                showPopup("Mic live: Recording vocal take in the booth...");
-            } else if (currentRoom === 'lounge') {
-                showPopup("Chilling in the lounge, brainstorming the next rollout.");
-            }
-        }
-
-        function showPopup(msg) {
-            interactionMessage = msg;
-            interactionTimer = 180;
-            const indicator = document.getElementById('mode-indicator');
-            indicator.textContent = msg;
-            setTimeout(() => {
-                if (interactionTimer <= 0) {
-                    indicator.textContent = capitalize(currentRoom) + " Room";
-                }
-            }, 3000);
-        }
-
-        function startAudioLoop() {
-            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            
-            let step = 0;
-            beatInterval = setInterval(() => {
-                if (!isBeatPlaying) return;
-                let osc = audioCtx.createOscillator();
-                let gain = audioCtx.createGain();
-                osc.type = (step % 4 === 0) ? 'square' : 'triangle';
-                osc.frequency.setValueAtTime((step % 4 === 0) ? 98 : 196, audioCtx.currentTime);
-                gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.25);
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.start();
-                osc.stop(audioCtx.currentTime + 0.25);
-                step = (step + 1) % 8;
-            }, 240);
-        }
-
-        function stopAudioLoop() {
-            if (beatInterval) clearInterval(beatInterval);
-        }
-
-        function update() {
-            if (keys.up) player.y -= player.speed;
-            if (keys.down) player.y += player.speed;
-            if (keys.left) player.x -= player.speed;
-            if (keys.right) player.x += player.speed;
-
-            if (currentRoom === 'control') {
-                if (player.x < 16) player.x = 16;
-                if (player.x > canvas.width - 32) player.x = canvas.width - 32;
-                if (player.y < 16) player.y = 16;
-                if (player.y > canvas.height - 32) player.y = canvas.height - 32;
-
-                // Door to Booth (Right)
-                if (player.x > canvas.width - 35 && player.y > 80 && player.y < 130) {
-                    currentRoom = 'booth';
-                    player.x = 24;
-                    player.y = 112;
-                    document.getElementById('mode-indicator').textContent = "Vocal Booth";
-                }
-                // Door to Lounge (Left)
-                else if (player.x < 20 && player.y > 80 && player.y < 130) {
-                    currentRoom = 'lounge';
-                    player.x = canvas.width - 40;
-                    player.y = 112;
-                    document.getElementById('mode-indicator').textContent = "Lounge Area";
-                }
-            } else if (currentRoom === 'booth') {
-                if (player.x < 16) {
-                    currentRoom = 'control';
-                    player.x = canvas.width - 45;
-                    player.y = 105;
-                    document.getElementById('mode-indicator').textContent = "Control Room";
-                }
-                if (player.x > canvas.width - 32) player.x = canvas.width - 32;
-                if (player.y < 16) player.y = 16;
-                if (player.y > canvas.height - 32) player.y = canvas.height - 32;
-            } else if (currentRoom === 'lounge') {
-                if (player.x > canvas.width - 32) {
-                    currentRoom = 'control';
-                    player.x = 35;
-                    player.y = 105;
-                    document.getElementById('mode-indicator').textContent = "Control Room";
-                }
-                if (player.x < 16) player.x = 16;
-                if (player.y < 16) player.y = 16;
-                if (player.y > canvas.height - 32) player.y = canvas.height - 32;
-            }
-
-            if (interactionTimer > 0) interactionTimer--;
-        }
-
-        function drawBackground() {
-            ctx.fillStyle = '#09090e';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            ctx.strokeStyle = '#13131c';
-            ctx.lineWidth = 1;
-            for (let x = 0; x < canvas.width; x += 16) {
-                ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
-            }
-            for (let y = 0; y < canvas.height; y += 16) {
-                ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
-            }
-        }
-
-        function drawControlRoom() {
-            ctx.strokeStyle = '#252535';
-            ctx.lineWidth = 4;
-            ctx.strokeRect(8, 8, canvas.width - 16, canvas.height - 16);
-
-            // Mixing Desk
-            ctx.fillStyle = '#171722';
-            ctx.fillRect(112, 60, 160, 50);
-            ctx.strokeStyle = '#323246';
-            ctx.strokeRect(112, 60, 160, 50);
-
-            // Desk Gear Details
-            ctx.fillStyle = '#b084ff';
-            ctx.fillRect(124, 72, 24, 12);
-            ctx.fillRect(156, 72, 16, 12);
-            ctx.fillStyle = '#ff84e8';
-            ctx.fillRect(184, 70, 40, 16);
-
-            // Studio Monitors
-            ctx.fillStyle = '#12121a';
-            ctx.fillRect(80, 55, 24, 40);
-            ctx.fillRect(280, 55, 24, 40);
-            ctx.fillStyle = '#4a4a5e';
-            ctx.beginPath(); ctx.arc(92, 75, 6, 0, Math.PI * 2); ctx.fill();
-            ctx.beginPath(); ctx.arc(292, 75, 6, 0, Math.PI * 2); ctx.fill();
-
-            // Doors
-            ctx.fillStyle = '#b084ff';
-            ctx.fillRect(canvas.width - 12, 84, 8, 48);
-            ctx.fillRect(4, 84, 8, 48);
-        }
-
-        function drawBoothRoom() {
-            ctx.strokeStyle = '#302242';
-            ctx.lineWidth = 4;
-            ctx.strokeRect(8, 8, canvas.width - 16, canvas.height - 16);
-
-            // Mic Stand & Pop Filter
-            ctx.fillStyle = '#171722';
-            ctx.fillRect(180, 80, 24, 60);
-            ctx.fillStyle = '#b084ff';
-            ctx.fillRect(188, 60, 8, 20);
-            ctx.fillStyle = '#555';
-            ctx.beginPath(); ctx.arc(192, 56, 10, 0, Math.PI * 2); ctx.stroke();
-
-            ctx.fillStyle = '#ff84e8';
-            ctx.fillRect(4, 84, 8, 48);
-        }
-
-        function drawLoungeRoom() {
-            ctx.strokeStyle = '#182535';
-            ctx.lineWidth = 4;
-            ctx.strokeRect(8, 8, canvas.width - 16, canvas.height - 16);
-
-            // Lounge Couch Setup
-            ctx.fillStyle = '#202030';
-            ctx.fillRect(140, 80, 100, 48);
-            ctx.fillStyle = '#b084ff';
-            ctx.fillRect(160, 92, 60, 24);
-
-            ctx.fillStyle = '#84ffff';
-            ctx.fillRect(canvas.width - 12, 84, 8, 48);
-        }
-
+        // Render Functions
         function drawPlayer() {
-            ctx.fillStyle = 'rgba(0,0,0,0.5)';
-            ctx.beginPath(); ctx.arc(player.x + player.size/2, player.y + player.size - 2, 6, 0, Math.PI * 2); ctx.fill();
+            // Body / Fit (Dark Streetwear)
+            ctx.fillStyle = '#111116';
+            ctx.fillRect(state.player.x - 12, state.player.y - 28, 24, 28);
 
-            ctx.fillStyle = player.color;
-            ctx.fillRect(player.x, player.y, player.size, player.size);
-            
-            // Curly hair head detail
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(player.x + 2, player.y + 1, 12, 5);
+            // Head / Skin (White tone)
+            ctx.fillStyle = '#f5d6c6';
+            ctx.fillRect(state.player.x - 8, state.player.y - 36, 16, 12);
+
+            // Dark Curls
+            ctx.fillStyle = '#1a110b';
+            ctx.beginPath();
+            ctx.arc(state.player.x - 6, state.player.y - 36, 4, 0, Math.PI * 2);
+            ctx.arc(state.player.x, state.player.y - 38, 5, 0, Math.PI * 2);
+            ctx.arc(state.player.x + 6, state.player.y - 36, 4, 0, Math.PI * 2);
+            ctx.fill();
         }
 
-        function loop() {
-            update();
-            drawBackground();
+        function drawRoom() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const activeRoom = rooms[state.currentRoom];
 
-            if (currentRoom === 'control') drawControlRoom();
-            else if (currentRoom === 'booth') drawBoothRoom();
-            else if (currentRoom === 'lounge') drawLoungeRoom();
+            // Render Floor Base
+            if (state.currentRoom === 'outside') {
+                ctx.fillStyle = '#181820';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                // Street Asphalt
+                ctx.fillStyle = '#0f0f14';
+                ctx.fillRect(0, 350, canvas.width, 250);
+                // Exterior Building Wall
+                ctx.fillStyle = '#2d2528';
+                ctx.fillRect(100, 100, 600, 250);
+            } else {
+                // Studio Interior Floor
+                ctx.fillStyle = '#1e1c24';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                // Studio Back Wall
+                ctx.fillStyle = '#121118';
+                ctx.fillRect(40, 40, 720, 160);
+            }
+
+            // Render Interactive Door Frameworks
+            activeRoom.doors.forEach(door => {
+                ctx.fillStyle = '#5a4d6e';
+                ctx.fillRect(door.x, door.y, door.width, door.height);
+                ctx.fillStyle = '#a28bc2';
+                ctx.fillRect(door.x + 4, door.y + 4, door.width - 8, door.height - 8);
+            });
+
+            // Render Interactive Room Props
+            activeRoom.objects.forEach(obj => {
+                if (obj.stealth) {
+                    // Lowrider Car Base (Stealth render - Zero floating labels)
+                    ctx.fillStyle = '#12121a';
+                    ctx.fillRect(obj.x - 80, obj.y - 10, 150, 40);
+                    ctx.fillStyle = '#000';
+                    ctx.beginPath();
+                    ctx.arc(obj.x - 50, obj.y + 30, 10, 0, Math.PI * 2);
+                    ctx.arc(obj.x + 40, obj.y + 30, 10, 0, Math.PI * 2);
+                    ctx.fill();
+                } else {
+                    ctx.fillStyle = '#3a3a4c';
+                    ctx.fillRect(obj.x, obj.y, obj.width, obj.height);
+                    ctx.strokeStyle = '#6e6e8c';
+                    ctx.strokeRect(obj.x, obj.y, obj.width, obj.height);
+                }
+            });
 
             drawPlayer();
-            requestAnimationFrame(loop);
+            checkProximity();
         }
 
-        loop();
+        // Proximity Engine for Doorways & Objects
+        function checkProximity() {
+            const activeRoom = rooms[state.currentRoom];
+            state.nearObject = null;
+
+            // Check Doors First
+            for (let door of activeRoom.doors) {
+                if (isColliding(state.player, door)) {
+                    state.nearObject = { type: 'door', data: door };
+                    drawInteractionPrompt(`Press [E] to ${door.label}`);
+                    return;
+                }
+            }
+
+            // Check Interactive Objects
+            for (let obj of activeRoom.objects) {
+                if (isColliding(state.player, obj)) {
+                    state.nearObject = { type: 'object', data: obj };
+                    if (!obj.stealth) {
+                        drawInteractionPrompt(`Press [E] to ${obj.label}`);
+                    }
+                    return;
+                }
+            }
+        }
+
+        function isColliding(p, target) {
+            return (
+                p.x - p.width / 2 < target.x + target.width &&
+                p.x + p.width / 2 > target.x &&
+                p.y - p.height / 2 < target.y + target.height &&
+                p.y + p.height / 2 > target.y
+            );
+        }
+
+        function drawInteractionPrompt(text) {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
+            ctx.fillRect(canvas.width / 2 - 140, canvas.height - 60, 280, 32);
+            ctx.strokeStyle = '#7289da';
+            ctx.strokeRect(canvas.width / 2 - 140, canvas.height - 60, 280, 32);
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '12px "Courier New"';
+            ctx.textAlign = 'center';
+            ctx.fillText(text, canvas.width / 2, canvas.height - 40);
+        }
+
+        // Interaction Handler Dispatcher
+        function triggerInteraction() {
+            AudioEngine.playTone(600, 'sine', 0.1);
+            if (!state.nearObject) return;
+
+            if (state.nearObject.type === 'door') {
+                const door = state.nearObject.data;
+                state.currentRoom = door.targetRoom;
+                state.player.x = door.targetX;
+                state.player.y = door.targetY;
+                document.getElementById('room-indicator').innerText = `Zone: ${rooms[state.currentRoom].name}`;
+            } else if (state.nearObject.type === 'object') {
+                const obj = state.nearObject.data;
+                const modal = document.getElementById('game-modal');
+                const title = document.getElementById('modal-title');
+                const body = document.getElementById('modal-body');
+
+                title.innerText = obj.title;
+                
+                // Event Dispatcher for Part 2 Dynamic Modal Content
+                const event = new CustomEvent('openStudioModal', { detail: { id: obj.id, room: state.currentRoom } });
+                window.dispatchEvent(event);
+
+                modal.style.display = 'block';
+            }
+        }
+
+        // Movement Engine
+        function updatePlayerPosition() {
+            if (state.keys.up && state.player.y > 180) state.player.y -= state.player.speed;
+            if (state.keys.down && state.player.y < 540) state.player.y += state.player.speed;
+            if (state.keys.left && state.player.x > 50) state.player.x -= state.player.speed;
+            if (state.keys.right && state.player.x < 750) state.player.x += state.player.speed;
+        }
+
+        function gameLoop() {
+            updatePlayerPosition();
+            drawRoom();
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Input Listener Bindings
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') state.keys.up = true;
+            if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') state.keys.down = true;
+            if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') state.keys.left = true;
+            if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') state.keys.right = true;
+            if (e.key === 'e' || e.key === 'E' || e.key === ' ') triggerInteraction();
+        });
+
+        window.addEventListener('keyup', (e) => {
+            if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') state.keys.up = false;
+            if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') state.keys.down = false;
+            if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') state.keys.left = false;
+            if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') state.keys.right = false;
+        });
+
+        // Touch Control Listeners
+        document.getElementById('btn-up').addEventListener('touchstart', (e) => { e.preventDefault(); state.keys.up = true; });
+        document.getElementById('btn-up').addEventListener('touchend', (e) => { e.preventDefault(); state.keys.up = false; });
+        document.getElementById('btn-down').addEventListener('touchstart', (e) => { e.preventDefault(); state.keys.down = true; });
+        document.getElementById('btn-down').addEventListener('touchend', (e) => { e.preventDefault(); state.keys.down = false; });
+        document.getElementById('btn-left').addEventListener('touchstart', (e) => { e.preventDefault(); state.keys.left = true; });
+        document.getElementById('btn-left').addEventListener('touchend', (e) => { e.preventDefault(); state.keys.left = false; });
+        document.getElementById('btn-right').addEventListener('touchstart', (e) => { e.preventDefault(); state.keys.right = true; });
+        document.getElementById('btn-right').addEventListener('touchend', (e) => { e.preventDefault(); state.keys.right = false; });
+        document.getElementById('btn-interact').addEventListener('click', triggerInteraction);
+
+        document.getElementById('modal-close').addEventListener('click', () => {
+            document.getElementById('game-modal').style.display = 'none';
+        });
+
+        // Start Game Engine
+        requestAnimationFrame(gameLoop);
     </script>
 </body>
-</html> 
+</html>

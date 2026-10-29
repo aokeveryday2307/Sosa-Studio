@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AOK // Pixel Studio</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        body {
+            background-color: #0c0c0e;
+            color: #f4f4f6;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            height: 100dvh;
+        }
+        header {
+            background: #141418;
+            border-bottom: 1px solid #2a2a35;
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+        }
+        .logo {
+            font-weight: 900;
+            font-size: 1.1rem;
+            letter-spacing: 2px;
+            color: #a855f7;
+            text-shadow: 0 0 10px rgba(168, 85, 247, 0.4);
+        }
+        .status {
+            font-size: 0.75rem;
+            color: #71717a;
+            background: #1e1e24;
+            padding: 4px 8px;
+            border-radius: 4px;
+            border: 1px solid #2a2a35;
+        }
+        .canvas-container {
+            flex: 1;
+            position: relative;
+            background: #09090b;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        canvas {
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        .controls-panel {
+            background: #141418;
+            border-top: 1px solid #2a2a35;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            z-index: 10;
+        }
+        .dpad-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .dpad {
+            display: grid;
+            grid-template-columns: repeat(3, 50px);
+            grid-template-rows: repeat(3, 50px);
+            gap: 4px;
+        }
+        .dpad-btn {
+            background: #1e1e24;
+            border: 1px solid #2a2a35;
+            color: #f4f4f6;
+            font-size: 1.2rem;
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            active-background: #2a2a35;
+        }
+        .dpad-btn:active {
+            background: #a855f7;
+            border-color: #c084fc;
+        }
+        .up { grid-column: 2; grid-row: 1; }
+        .left { grid-column: 1; grid-row: 2; }
+        .right { grid-column: 3; grid-row: 2; }
+        .down { grid-column: 2; grid-row: 3; }
+
+        .action-btns {
+            display: flex;
+            gap: 10px;
+        }
+        .action-btn {
+            flex: 1;
+            background: #1e1e24;
+            border: 1px solid #2a2a35;
+            color: #f4f4f6;
+            padding: 14px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            text-align: center;
+        }
+        .action-btn.primary {
+            background: #a855f7;
+            border-color: #c084fc;
+            color: #fff;
+            box-shadow: 0 0 15px rgba(168, 85, 247, 0.3);
+        }
+        .action-btn:active {
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo">AOK // STUDIO</div>
+        <div class="status" id="interactionStatus">Walk to Gear</div>
+    </header>
+
+    <div class="canvas-container">
+        <canvas id="studioCanvas" width="320" height="180"></canvas>
+    </div>
+
+    <div class="controls-panel">
+        <div class="dpad-container">
+            <div class="dpad">
+                <div class="dpad-btn up" id="btnUp">▲</div>
+                <div class="dpad-btn left" id="btnLeft">◀</div>
+                <div class="dpad-btn right" id="btnRight">▶</div>
+                <div class="dpad-btn down" id="btnDown">▼</div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 8px; width: 140px;">
+                <div class="action-btn primary" id="btnAction">Interact</div>
+                <div class="action-btn" id="btnBeat">Toggle Beat</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('studioCanvas');
+        const ctx = canvas.getContext('2d');
+        ctx.imageSmoothingEnabled = false;
+
+        // Player state
+        let player = {
+            x: 140,
+            y: 100,
+            size: 12,
+            speed: 1.5,
+            dir: 'down',
+            moving: false
+        };
+
+        // Input state
+        let keys = { up: false, down: false, left: false, right: false };
+
+        // Setup touch/mouse listeners for D-Pad
+        function bindButton(id, keyName) {
+            const el = document.getElementById(id);
+            el.addEventListener('touchstart', (e) => { e.preventDefault(); keys[keyName] = true; player.moving = true; });
+            el.addEventListener('touchend', (e) => { e.preventDefault(); keys[keyName] = false; });
+            el.addEventListener('mousedown', () => { keys[keyName] = true; player.moving = true; });
+            el.addEventListener('mouseup', () => { keys[keyName] = false; });
+        }
+
+        bindButton('btnUp', 'up');
+        bindButton('btnDown', 'down');
+        bindButton('btnLeft', 'left');
+        bindButton('btnRight', 'right');
+
+        let beatPlaying = false;
+        let audioCtx = null;
+
+        document.getElementById('btnBeat').addEventListener('click', () => {
+            beatPlaying = !beatPlaying;
+            document.getElementById('btnBeat').style.borderColor = beatPlaying ? '#a855f7' : '#2a2a35';
+            if (beatPlaying && !audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        });
+
+        document.getElementById('btnAction').addEventListener('click', () => {
+            // Check interaction distance with studio gear
+            let distToMic = Math.hypot(player.x - 80, player.y - 70);
+            if (distToMic < 30) {
+                alert("Microphone Booth: Vokals recording ready. Purple lighting active.");
+            } else {
+                alert("Exploring the MDM Studio setup.");
+            }
+        });
+
+        // Simple audio loop ticker
+        let tick = 0;
+        function playBeatStep() {
+            if (!beatPlaying || !audioCtx) return;
+            if (tick % 8 === 0) {
+                // Kick drum simulator
+                let osc = audioCtx.createOscillator();
+                let gain = audioCtx.createGain();
+                osc.frequency.setValueAtTime(120, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(30, audioCtx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.1);
+            }
+            tick++;
+        }
+        setInterval(playBeatStep, 120);
+
+        // Game Loop
+        function update() {
+            player.moving = false;
+            if (keys.up) { player.y -= player.speed; player.dir = 'up'; player.moving = true; }
+            if (keys.down) { player.y += player.speed; player.dir = 'down'; player.moving = true; }
+            if (keys.left) { player.x -= player.speed; player.dir = 'left'; player.moving = true; }
+            if (keys.right) { player.x += player.speed; player.dir = 'right'; player.moving = true; }
+
+            // Room bounds
+            player.x = Math.max(20, Math.min(300, player.x));
+            player.y = Math.max(50, Math.min(160, player.y));
+        }
+
+        function draw() {
+            // Background Room (Dark underground studio aesthetic with purple ambient tint)
+            ctx.fillStyle = '#121216';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Floor Grid Pattern
+            ctx.strokeStyle = '#1a1a22';
+            ctx.lineWidth = 1;
+            for (let x = 0; x < canvas.width; x += 16) {
+                ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+            }
+            for (let y = 0; y < canvas.height; y += 16) {
+                ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+            }
+
+            // Studio Gear: Microphone Booth & Reflection Shield (Top Left)
+            ctx.fillStyle = '#272730';
+            ctx.fillRect(60, 50, 40, 40);
+            ctx.fillStyle = '#a855f7'; // Purple ambient lighting
+            ctx.fillRect(75, 60, 10, 20);
+
+            // Studio Gear: Monitors & Laptop Setup (Top Right)
+            ctx.fillStyle = '#1e1e24';
+            ctx.fillRect(220, 50, 60, 30);
+            ctx.fillStyle = '#3b82f6';
+            ctx.fillRect(235, 58, 30, 15);
+
+            // Draw Player (Pixel Character with fitted streetwear aesthetic)
+            ctx.fillStyle = '#f4f4f6'; // Skin/Head
+            ctx.fillRect(player.x - 3, player.y - 8, 6, 6);
+            ctx.fillStyle = '#a855f7'; // Hoodie / Jacket
+            ctx.fillRect(player.x - 5, player.y - 2, 10, 8);
+            ctx.fillStyle = '#18181b'; // Pants
+            ctx.fillRect(player.x - 4, player.y + 6, 8, 6);
+
+            // Proximity detector text update
+            let distToMic = Math.hypot(player.x - 80, player.y - 70);
+            document.getElementById('interactionStatus').innerText = distToMic < 35 ? "Press Interact for Mic" : "Studio Free Roam";
+        }
+
+        function loop() {
+            update();
+            draw();
+            requestAnimationFrame(loop);
+        }
+
+        loop();
+    </script>
+</body>
+</html>

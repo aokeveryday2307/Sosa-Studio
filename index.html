@@ -500,7 +500,7 @@
     }
 
     function openAdminLoginModal() {
-        let pin = prompt("Enter Secret Admin Passcode (2323):");
+        let pin = prompt("Enter Secret Admin Passcode :");
         if (pin === null) return;
         let settings = JSON.parse(localStorage.getItem('sosa_admin_settings') || '{"code":"2323"}');
         if (pin === settings.code) { state.adminUnlocked = true; openAdminDashboard(); }

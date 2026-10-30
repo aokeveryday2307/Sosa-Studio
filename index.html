@@ -558,7 +558,23 @@
                     <button id="adm-close-btn" style="flex: 1; padding: 10px; background: #ff0055; color: #fff; border: none; font-weight: bold; border-radius: 6px; cursor: pointer;">CLOSE</button>
                 </div>
             </div>
-        `;
+            <div style="margin-bottom: 10px;">
+        <label style="font-size: 11px; color: #aaa; display: block; margin-bottom: 3px;">Studio TV Interview YouTube URL:</label>
+        <input type="text" id="adm-tv-url" style="width: 100%; padding: 6px; background: #0a0a0f; border: 1px solid #333; color: #fff; border-radius: 4px;" placeholder="https://www.youtube.com/watch?v=...">
+    </div>
+
+    <div style="margin-bottom: 10px; border-top: 1px solid #333; padding-top: 8px;">
+        <label style="font-size: 11px; color: #00f0ff; display: block; margin-bottom: 5px;">WALL RECORDS CONFIGURATION</label>
+        <input type="text" id="adm-rec-0-title" placeholder="Record 1 Title" style="width: 100%; padding: 5px; margin-bottom: 4px; background: #0a0a0f; border: 1px solid #333; color: #fff; border-radius: 4px;">
+        <input type="text" id="adm-rec-0-img" placeholder="Record 1 Cover Art URL" style="width: 100%; padding: 5px; margin-bottom: 8px; background: #0a0a0f; border: 1px solid #333; color: #fff; border-radius: 4px;">
+        
+        <input type="text" id="adm-rec-1-title" placeholder="Record 2 Title" style="width: 100%; padding: 5px; margin-bottom: 4px; background: #0a0a0f; border: 1px solid #333; color: #fff; border-radius: 4px;">
+        <input type="text" id="adm-rec-1-img" placeholder="Record 2 Cover Art URL" style="width: 100%; padding: 5px; margin-bottom: 8px; background: #0a0a0f; border: 1px solid #333; color: #fff; border-radius: 4px;">
+
+        <input type="text" id="adm-rec-2-title" placeholder="Record 3 Title" style="width: 100%; padding: 5px; margin-bottom: 4px; background: #0a0a0f; border: 1px solid #333; color: #fff; border-radius: 4px;">
+        <input type="text" id="adm-rec-2-img" placeholder="Record 2 Cover Art URL" style="width: 100%; padding: 5px; background: #0a0a0f; border: 1px solid #333; color: #fff; border-radius: 4px;">
+    </div>
+`;
         document.body.appendChild(modal);
 
         document.getElementById('adm-save-btn').addEventListener('click', () => {
